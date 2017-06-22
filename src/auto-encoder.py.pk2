@@ -1,0 +1,989 @@
+# Auto-encoder for 2D cortex slices
+# Chuong Nguyen
+# 07/11/2017
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+
+import tensorflow as tf
+import numpy as np
+import h5py
+import glob
+import os
+import argparse
+import sys
+from datetime import datetime
+from eeg_input_data import eeg_data
+from utils import get_input_data_path, get_data_path
+import models
+
+FLAGS = None
+
+def weight_variable(shape):
+    initial = tf.truncated_normal(shape, stddev=0.1)
+    return tf.Variable(initial)
+
+def bias_variable(shape):
+    initial = tf.constant(0.1, shape=shape)
+    return tf.Variable(initial)
+
+#def conv2d(x, W, strides=strides, padding=padding):
+#    return tf.nn.conv2d(x, W, strides=strides, padding=padding)
+
+#def max_pool(x, ksize=ksize, strides=strides, padding=padding):
+#    return tf.nn.max_pool(x, ksize, strides, padding=padding)
+
+
+def build_model_big(x, x_dim, keep_prob):
+    # FC1
+    with tf.name_scope("FC1"):
+        fc1_dim = 300
+        W_fc1 = weight_variable([x_dim, fc1_dim])
+        b_fc1 = weight_variable([fc1_dim])
+        h_fc1 = tf.nn.relu(tf.matmul(x, W_fc1) + b_fc1)
+
+    # FC2
+    with tf.name_scope("FC2"):
+        fc2_dim = 200
+        W_fc2 = weight_variable([fc1_dim, fc2_dim])
+        b_fc2 = weight_variable([fc2_dim])
+        h_fc2 = tf.nn.relu(tf.matmul(h_fc1, W_fc2) + b_fc2)
+
+    # FC3
+    with tf.name_scope("FC3"):
+        fc3_dim = 100 
+        W_fc3 = weight_variable([fc2_dim, fc3_dim])
+        b_fc3 = weight_variable([fc3_dim])
+        h_fc3 = tf.nn.relu(tf.matmul(h_fc2, W_fc3) + b_fc3)
+
+    # dropout
+    with tf.name_scope("Dropout"):
+        h_fc3_drop = tf.nn.dropout(h_fc3, keep_prob)
+
+    # FC4
+    with tf.name_scope("FC4"):
+        fc4_dim = 200
+        W_fc4 = weight_variable([fc3_dim, fc4_dim])
+        b_fc4 = weight_variable([fc4_dim])
+        h_fc4 = tf.nn.relu(tf.matmul(h_fc3_drop, W_fc4) + b_fc4)
+
+    # FC5
+    with tf.name_scope("FC5"):
+        fc5_dim = 300
+        W_fc5 = weight_variable([fc4_dim, fc5_dim])
+        b_fc5 = weight_variable([fc5_dim])
+        h_fc5 = tf.nn.relu(tf.matmul(h_fc4, W_fc5) + b_fc5)
+
+    # FC6
+    with tf.name_scope("FC6"):
+        fc6_dim = x_dim
+        W_fc6 = weight_variable([fc5_dim, fc6_dim])
+        b_fc6 = weight_variable([fc6_dim])
+        y = tf.matmul(h_fc5, W_fc6) + b_fc6
+
+    # LOSS 
+    with tf.name_scope("loss"):
+        loss = tf.reduce_mean(tf.squared_difference(y, x))
+        #l1_loss = tf.reduce_sum(tf.abs(W_fc1)) + \
+        #          tf.reduce_sum(tf.abs(W_fc2)) + \
+        #          tf.reduce_sum(tf.abs(W_fc3)) + \
+        #          tf.reduce_sum(tf.abs(W_fc4)) +  \
+        #          tf.reduce_sum(tf.abs(W_fc5)) +  \
+        #          tf.reduce_sum(tf.abs(W_fc6))
+        #loss += gamma * l1_loss
+        tf.scalar_summary("loss", loss)
+
+        # summary
+        summary_op = tf.merge_all_summaries()
+    return loss, y
+
+
+
+
+def build_model_l1(x, x_dim, keep_prob, gamma=0.00001):
+    # FC1
+    with tf.name_scope("FC1"):
+        fc1_dim = 256 
+        W_fc1 = weight_variable([x_dim, fc1_dim])
+        b_fc1 = weight_variable([fc1_dim])
+        h_fc1 = tf.nn.relu(tf.matmul(x, W_fc1) + b_fc1)
+
+    # FC2
+    with tf.name_scope("FC2"):
+        fc2_dim = 128
+        W_fc2 = weight_variable([fc1_dim, fc2_dim])
+        b_fc2 = weight_variable([fc2_dim])
+        h_fc2 = tf.nn.relu(tf.matmul(h_fc1, W_fc2) + b_fc2)
+
+    # FC3
+    with tf.name_scope("FC3"):
+        fc3_dim = 64
+        W_fc3 = weight_variable([fc2_dim, fc3_dim])
+        b_fc3 = weight_variable([fc3_dim])
+        h_fc3 = tf.nn.relu(tf.matmul(h_fc2, W_fc3) + b_fc3)
+
+    # dropout
+    with tf.name_scope("Dropout"):
+        h_fc3_drop = tf.nn.dropout(h_fc3, keep_prob)
+
+    # FC4
+    with tf.name_scope("FC4"):
+        fc4_dim = 128 
+        W_fc4 = weight_variable([fc3_dim, fc4_dim])
+        b_fc4 = weight_variable([fc4_dim])
+        h_fc4 = tf.nn.relu(tf.matmul(h_fc3_drop, W_fc4) + b_fc4)
+
+    # FC5
+    with tf.name_scope("FC5"):
+        fc5_dim = 256 
+        W_fc5 = weight_variable([fc4_dim, fc5_dim])
+        b_fc5 = weight_variable([fc5_dim])
+        h_fc5 = tf.nn.relu(tf.matmul(h_fc4, W_fc5) + b_fc5)
+
+    # FC6
+    with tf.name_scope("FC6"):
+        fc6_dim = x_dim
+        W_fc6 = weight_variable([fc5_dim, fc6_dim])
+        b_fc6 = weight_variable([fc6_dim])
+        y = tf.matmul(h_fc5, W_fc6) + b_fc6
+
+    # LOSS 
+    with tf.name_scope("loss"):
+        loss = tf.reduce_mean(tf.squared_difference(y, x))
+        #l1_loss = tf.reduce_sum(tf.abs(W_fc1)) + \
+        #          tf.reduce_sum(tf.abs(W_fc2)) + \
+        #          tf.reduce_sum(tf.abs(W_fc3)) + \
+        #         tf.reduce_sum(tf.abs(W_fc4)) +  \
+        #         tf.reduce_sum(tf.abs(W_fc5)) +  \
+        #         tf.reduce_sum(tf.abs(W_fc6))
+        #loss += gamma * l1_loss
+        tf.scalar_summary("loss", loss)
+
+        # summary
+        summary_op = tf.merge_all_summaries()
+    return loss, y
+
+
+
+def dense_layer(x, dims, layer_name, activation='relu'):
+    in_dim, out_dim = dims
+    with tf.name_scope(layer_name):
+        w = weight_variable([in_dim, out_dim])
+        b = weight_variable([out_dim])
+        if activation == 'relu':
+            h = tf.nn.relu(tf.matmul(x, w) + b)
+        elif activation == 'sigmoid':
+            h = tf.nn.sigmoid(tf.matmul(x, w) + b)
+        else:
+            h = tf.matmul(x, w) + b
+    return h
+
+
+
+def build_model_freqSum_TiedWeightNoBias(x, x_dim, keep_prob, gamma=1e-7):
+    # FC1
+    with tf.name_scope("FC1"):
+        fc1_dim = 4096
+        W_fc1 = weight_variable([x_dim, fc1_dim])
+        h_fc1 = tf.nn.relu(tf.matmul(x, W_fc1))
+
+    # dropout
+    with tf.name_scope("Dropout1"):
+        h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
+
+    # FC2
+    with tf.name_scope("FC2"):
+        fc2_dim = 2048
+        W_fc2 = weight_variable([fc1_dim, fc2_dim])
+        h_fc2 = tf.nn.relu(tf.matmul(h_fc1_drop, W_fc2))
+
+
+    # FC3
+    with tf.name_scope("FC3"):
+        fc3_dim = 1024
+        W_fc3 = weight_variable([fc2_dim, fc3_dim])
+        h_fc3 = tf.nn.relu(tf.matmul(h_fc2, W_fc3))
+
+    # FC4
+    with tf.name_scope("FC4"):
+        #fc4_dim = 256
+        fc4_dim = 512
+        W_fc4 = weight_variable([fc3_dim, fc4_dim])
+        h_fc4 = tf.nn.relu(tf.matmul(h_fc3, W_fc4))
+
+    # FC5
+    with tf.name_scope("FC5"):
+        fc5_dim = 256
+        W_fc5 = weight_variable([fc4_dim, fc5_dim])
+        h_fc5 = tf.nn.relu(tf.matmul(h_fc4, W_fc5))
+
+    # FC6
+    with tf.name_scope("FC6"):
+        fc6_dim = 128 
+        W_fc6 = weight_variable([fc5_dim, fc6_dim])
+        h_fc6 = tf.nn.relu(tf.matmul(h_fc5, W_fc6))
+
+    # dropout
+    #with tf.name_scope("Dropout2"):
+    #    h_fc6_drop = tf.nn.dropout(h_fc6, keep_prob)
+
+    # FC7
+    with tf.name_scope("FC7"):
+        fc7_dim = 256
+        W_fc7 = tf.transpose(W_fc6)
+        h_fc7 = tf.nn.relu(tf.matmul(h_fc6, W_fc7))
+
+    # FC8
+    with tf.name_scope("FC8"):
+        fc8_dim = 512
+        W_fc8 = tf.transpose(W_fc5)
+        h_fc8 = tf.nn.relu(tf.matmul(h_fc7, W_fc8))
+
+    # FC9
+    with tf.name_scope("FC9"):
+        fc9_dim = 1024
+        W_fc9 = tf.transpose(W_fc4)
+        h_fc9 = tf.nn.relu(tf.matmul(h_fc8, W_fc9))
+
+
+    # FC10
+    with tf.name_scope("FC10"):
+        fc10_dim = 2048
+        W_fc10 = tf.transpose(W_fc3)
+        h_fc10 = tf.nn.relu(tf.matmul(h_fc9, W_fc10))
+
+    # dropout
+    with tf.name_scope("Dropout3"):
+        h_fc10_drop = tf.nn.dropout(h_fc10, keep_prob)
+
+    # FC11
+    with tf.name_scope("FC11"):
+        fc11_dim = 4096
+        W_fc11 = tf.transpose(W_fc2)
+        h_fc11 = tf.nn.relu(tf.matmul(h_fc10_drop, W_fc11))
+
+    # FC12
+    with tf.name_scope("FC12"):
+        fc12_dim = x_dim
+        W_fc12 = tf.transpose(W_fc1)
+        y = tf.matmul(h_fc11, W_fc12)
+
+
+    # LOSS 
+    with tf.name_scope("loss"):
+        loss = tf.sqrt(tf.reduce_mean(tf.square(y-x)))
+        l1_loss = tf.reduce_sum(tf.abs(W_fc1)) + \
+                  tf.reduce_sum(tf.abs(W_fc2)) + \
+                  tf.reduce_sum(tf.abs(W_fc3)) + \
+                  tf.reduce_sum(tf.abs(W_fc4)) +  \
+                  tf.reduce_sum(tf.abs(W_fc5)) +  \
+                  tf.reduce_sum(tf.abs(W_fc6))
+        #loss += gamma * l1_loss
+        tf.scalar_summary("loss", loss)
+
+        # summary
+        summary_op = tf.merge_all_summaries()
+    return loss, y, gamma * l1_loss
+
+
+
+
+
+
+def build_model_freqSum_TiedWeight(x, x_dim, keep_prob, gamma=1e-7):
+    # FC1
+    with tf.name_scope("FC1"):
+        #fc1_dim = 2048
+        fc1_dim = 4096
+        W_fc1 = weight_variable([x_dim, fc1_dim])
+        b_fc1 = weight_variable([fc1_dim])
+        h_fc1 = tf.nn.relu(tf.matmul(x, W_fc1) + b_fc1)
+        #h_fc1 = tf.matmul(x, W_fc1) + b_fc1
+
+    # dropout
+    with tf.name_scope("Dropout1"):
+        h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
+
+    # FC2
+    with tf.name_scope("FC2"):
+        #fc2_dim = 1024
+        fc2_dim = 2048
+        W_fc2 = weight_variable([fc1_dim, fc2_dim])
+        b_fc2 = weight_variable([fc2_dim])
+        #h_fc2 = tf.nn.relu(tf.matmul(h_fc1, W_fc2) + b_fc2)
+        h_fc2 = tf.nn.relu(tf.matmul(h_fc1_drop, W_fc2) + b_fc2)
+
+
+    # FC3
+    with tf.name_scope("FC3"):
+        #fc3_dim = 512
+        fc3_dim = 1024
+        W_fc3 = weight_variable([fc2_dim, fc3_dim])
+        b_fc3 = weight_variable([fc3_dim])
+        #h_fc3 = tf.nn.relu(tf.matmul(h_fc2_drop, W_fc3) + b_fc3)
+        h_fc3 = tf.nn.relu(tf.matmul(h_fc2, W_fc3) + b_fc3)
+
+    # FC4
+    with tf.name_scope("FC4"):
+        #fc4_dim = 256
+        fc4_dim = 512
+        W_fc4 = weight_variable([fc3_dim, fc4_dim])
+        b_fc4 = weight_variable([fc4_dim])
+        h_fc4 = tf.nn.relu(tf.matmul(h_fc3, W_fc4) + b_fc4)
+
+    # FC5
+    with tf.name_scope("FC5"):
+        #fc5_dim = 128
+        fc5_dim = 256
+        W_fc5 = weight_variable([fc4_dim, fc5_dim])
+        b_fc5 = weight_variable([fc5_dim])
+        h_fc5 = tf.nn.relu(tf.matmul(h_fc4, W_fc5) + b_fc5)
+
+    # FC6
+    with tf.name_scope("FC6"):
+        fc6_dim = 128 
+        W_fc6 = weight_variable([fc5_dim, fc6_dim])
+        b_fc6 = weight_variable([fc6_dim])
+        h_fc6 = tf.nn.relu(tf.matmul(h_fc5, W_fc6) + b_fc6)
+
+    # dropout
+    #with tf.name_scope("Dropout2"):
+    #    h_fc6_drop = tf.nn.dropout(h_fc6, keep_prob)
+
+    # FC7
+    with tf.name_scope("FC7"):
+        #fc7_dim = 128
+        fc7_dim = 256
+        #W_fc7 = weight_variable([fc6_dim, fc7_dim])
+        W_fc7 = tf.transpose(W_fc6)
+        b_fc7 = weight_variable([fc7_dim])
+        h_fc7 = tf.nn.relu(tf.matmul(h_fc6, W_fc7) + b_fc7)
+        #h_fc7 = tf.nn.relu(tf.matmul(h_fc6_drop, W_fc7) + b_fc7)
+
+    # FC8
+    with tf.name_scope("FC8"):
+        #fc8_dim = 256
+        fc8_dim = 512
+        #W_fc8 = weight_variable([fc7_dim, fc8_dim])
+        W_fc8 = tf.transpose(W_fc5)
+        b_fc8 = weight_variable([fc8_dim])
+        h_fc8 = tf.nn.relu(tf.matmul(h_fc7, W_fc8) + b_fc8)
+
+    # FC9
+    with tf.name_scope("FC9"):
+        #fc9_dim = 512
+        fc9_dim = 1024
+        #W_fc9 = weight_variable([fc8_dim, fc9_dim])
+        W_fc9 = tf.transpose(W_fc4)
+        b_fc9 = weight_variable([fc9_dim])
+        h_fc9 = tf.nn.relu(tf.matmul(h_fc8, W_fc9) + b_fc9)
+
+
+    # FC10
+    with tf.name_scope("FC10"):
+        #fc10_dim = 1024
+        fc10_dim = 2048
+        #W_fc10 = weight_variable([fc9_dim, fc10_dim])
+        W_fc10 = tf.transpose(W_fc3)
+        b_fc10 = weight_variable([fc10_dim])
+        h_fc10 = tf.nn.relu(tf.matmul(h_fc9, W_fc10) + b_fc10)
+
+    # dropout
+    with tf.name_scope("Dropout3"):
+        h_fc10_drop = tf.nn.dropout(h_fc10, keep_prob)
+
+    # FC11
+    with tf.name_scope("FC11"):
+        #fc11_dim = 2048
+        fc11_dim = 4096
+        W_fc11 = tf.transpose(W_fc2)
+        #W_fc11 = weight_variable([fc10_dim, fc11_dim])
+        b_fc11 = weight_variable([fc11_dim])
+        h_fc11 = tf.nn.relu(tf.matmul(h_fc10_drop, W_fc11) + b_fc11)
+        #h_fc11 = tf.nn.relu(tf.matmul(h_fc10, W_fc11) + b_fc11)
+
+    # FC12
+    with tf.name_scope("FC12"):
+        fc12_dim = x_dim
+        #W_fc12 = weight_variable([fc11_dim, fc12_dim])
+        W_fc12 = tf.transpose(W_fc1)
+        b_fc12 = weight_variable([fc12_dim])
+        #y = tf.nn.relu(tf.matmul(h_fc11, W_fc12) + b_fc12)
+        y = tf.matmul(h_fc11, W_fc12) + b_fc12
+
+
+    # LOSS 
+    with tf.name_scope("loss"):
+        #loss = tf.reduce_mean(tf.squared_difference(y, x))
+        loss = tf.sqrt(tf.reduce_mean(tf.square(y-x)))
+        l1_loss = tf.reduce_sum(tf.abs(W_fc1)) + \
+                  tf.reduce_sum(tf.abs(W_fc2)) + \
+                  tf.reduce_sum(tf.abs(W_fc3)) + \
+                  tf.reduce_sum(tf.abs(W_fc4)) +  \
+                  tf.reduce_sum(tf.abs(W_fc5)) +  \
+                  tf.reduce_sum(tf.abs(W_fc6))
+        #loss += gamma * l1_loss
+        tf.scalar_summary("loss", loss)
+
+        # summary
+        summary_op = tf.merge_all_summaries()
+    return loss, y, gamma * l1_loss
+
+
+
+
+
+
+def build_model_freqSum_TiedWeightNoDropout(x, x_dim, keep_prob, gamma=1e-7):
+    # FC1
+    with tf.name_scope("FC1"):
+        #fc1_dim = 2048
+        fc1_dim = 4096
+        W_fc1 = weight_variable([x_dim, fc1_dim])
+        b_fc1 = weight_variable([fc1_dim])
+        h_fc1 = tf.nn.relu(tf.matmul(x, W_fc1) + b_fc1)
+        #h_fc1 = tf.matmul(x, W_fc1) + b_fc1
+
+
+    # FC2
+    with tf.name_scope("FC2"):
+        #fc2_dim = 1024
+        fc2_dim = 2048
+        W_fc2 = weight_variable([fc1_dim, fc2_dim])
+        b_fc2 = weight_variable([fc2_dim])
+        #h_fc2 = tf.nn.relu(tf.matmul(h_fc1, W_fc2) + b_fc2)
+        h_fc2 = tf.nn.relu(tf.matmul(h_fc1, W_fc2) + b_fc2)
+
+    # dropout
+    #with tf.name_scope("Dropout1"):
+    #    h_fc2_drop = tf.nn.dropout(h_fc2, keep_prob)
+
+    # FC3
+    with tf.name_scope("FC3"):
+        #fc3_dim = 512
+        fc3_dim = 1024
+        W_fc3 = weight_variable([fc2_dim, fc3_dim])
+        b_fc3 = weight_variable([fc3_dim])
+        #h_fc3 = tf.nn.relu(tf.matmul(h_fc2_drop, W_fc3) + b_fc3)
+        h_fc3 = tf.nn.relu(tf.matmul(h_fc2, W_fc3) + b_fc3)
+
+    # FC4
+    with tf.name_scope("FC4"):
+        #fc4_dim = 256
+        fc4_dim = 512
+        W_fc4 = weight_variable([fc3_dim, fc4_dim])
+        b_fc4 = weight_variable([fc4_dim])
+        h_fc4 = tf.nn.relu(tf.matmul(h_fc3, W_fc4) + b_fc4)
+
+    # FC5
+    with tf.name_scope("FC5"):
+        #fc5_dim = 128
+        fc5_dim = 256
+        W_fc5 = weight_variable([fc4_dim, fc5_dim])
+        b_fc5 = weight_variable([fc5_dim])
+        h_fc5 = tf.nn.relu(tf.matmul(h_fc4, W_fc5) + b_fc5)
+
+    # FC6
+    with tf.name_scope("FC6"):
+        fc6_dim = 128 
+        W_fc6 = weight_variable([fc5_dim, fc6_dim])
+        b_fc6 = weight_variable([fc6_dim])
+        h_fc6 = tf.nn.relu(tf.matmul(h_fc5, W_fc6) + b_fc6)
+
+    # dropout
+    #with tf.name_scope("Dropout2"):
+    #    h_fc6_drop = tf.nn.dropout(h_fc6, keep_prob)
+
+    # FC7
+    with tf.name_scope("FC7"):
+        #fc7_dim = 128
+        fc7_dim = 256
+        #W_fc7 = weight_variable([fc6_dim, fc7_dim])
+        W_fc7 = tf.transpose(W_fc6)
+        b_fc7 = weight_variable([fc7_dim])
+        h_fc7 = tf.nn.relu(tf.matmul(h_fc6, W_fc7) + b_fc7)
+        #h_fc7 = tf.nn.relu(tf.matmul(h_fc6_drop, W_fc7) + b_fc7)
+
+    # FC8
+    with tf.name_scope("FC8"):
+        #fc8_dim = 256
+        fc8_dim = 512
+        #W_fc8 = weight_variable([fc7_dim, fc8_dim])
+        W_fc8 = tf.transpose(W_fc5)
+        b_fc8 = weight_variable([fc8_dim])
+        h_fc8 = tf.nn.relu(tf.matmul(h_fc7, W_fc8) + b_fc8)
+
+    # FC9
+    with tf.name_scope("FC9"):
+        #fc9_dim = 512
+        fc9_dim = 1024
+        #W_fc9 = weight_variable([fc8_dim, fc9_dim])
+        W_fc9 = tf.transpose(W_fc4)
+        b_fc9 = weight_variable([fc9_dim])
+        h_fc9 = tf.nn.relu(tf.matmul(h_fc8, W_fc9) + b_fc9)
+
+
+    # FC10
+    with tf.name_scope("FC10"):
+        #fc10_dim = 1024
+        fc10_dim = 2048
+        #W_fc10 = weight_variable([fc9_dim, fc10_dim])
+        W_fc10 = tf.transpose(W_fc3)
+        b_fc10 = weight_variable([fc10_dim])
+        h_fc10 = tf.nn.relu(tf.matmul(h_fc9, W_fc10) + b_fc10)
+
+    # dropout
+    #with tf.name_scope("Dropout3"):
+    #    h_fc10_drop = tf.nn.dropout(h_fc10, keep_prob)
+
+    # FC11
+    with tf.name_scope("FC11"):
+        #fc11_dim = 2048
+        fc11_dim = 4096
+        W_fc11 = tf.transpose(W_fc2)
+        #W_fc11 = weight_variable([fc10_dim, fc11_dim])
+        b_fc11 = weight_variable([fc11_dim])
+        #h_fc11 = tf.nn.relu(tf.matmul(h_fc10_drop, W_fc11) + b_fc11)
+        h_fc11 = tf.nn.relu(tf.matmul(h_fc10, W_fc11) + b_fc11)
+
+    # FC12
+    with tf.name_scope("FC12"):
+        fc12_dim = x_dim
+        #W_fc12 = weight_variable([fc11_dim, fc12_dim])
+        W_fc12 = tf.transpose(W_fc1)
+        b_fc12 = weight_variable([fc12_dim])
+        #y = tf.nn.relu(tf.matmul(h_fc11, W_fc12) + b_fc12)
+        y = tf.matmul(h_fc11, W_fc12) + b_fc12
+
+
+    # LOSS 
+    with tf.name_scope("loss"):
+        #loss = tf.reduce_mean(tf.squared_difference(y, x))
+        loss = tf.sqrt(tf.reduce_mean(tf.square(y-x)))
+        l1_loss = tf.reduce_sum(tf.abs(W_fc1)) + \
+                  tf.reduce_sum(tf.abs(W_fc2)) + \
+                  tf.reduce_sum(tf.abs(W_fc3)) + \
+                  tf.reduce_sum(tf.abs(W_fc4)) +  \
+                  tf.reduce_sum(tf.abs(W_fc5)) +  \
+                  tf.reduce_sum(tf.abs(W_fc6))
+        #loss += gamma * l1_loss
+        tf.scalar_summary("loss", loss)
+
+        # summary
+        summary_op = tf.merge_all_summaries()
+    return loss, y, gamma * l1_loss
+
+
+
+
+def build_model_freqSum(x, x_dim, keep_prob, gamma=0.00001):
+    # FC1
+    with tf.name_scope("FC1"):
+        fc1_dim = 2048
+        #fc1_dim = 4096
+        W_fc1 = weight_variable([x_dim, fc1_dim])
+        b_fc1 = weight_variable([fc1_dim])
+        h_fc1 = tf.nn.relu(tf.matmul(x, W_fc1) + b_fc1)
+        #h_fc1 = tf.matmul(x, W_fc1) + b_fc1
+
+    # FC2
+    with tf.name_scope("FC2"):
+        fc2_dim = 1024
+        #fc2_dim = 2048
+        W_fc2 = weight_variable([fc1_dim, fc2_dim])
+        b_fc2 = weight_variable([fc2_dim])
+        h_fc2 = tf.nn.relu(tf.matmul(h_fc1, W_fc2) + b_fc2)
+
+    # dropout
+    with tf.name_scope("Dropout1"):
+        h_fc2_drop = tf.nn.dropout(h_fc2, keep_prob)
+
+    # FC3
+    with tf.name_scope("FC3"):
+        fc3_dim = 512
+        #fc3_dim = 1024
+        W_fc3 = weight_variable([fc2_dim, fc3_dim])
+        b_fc3 = weight_variable([fc3_dim])
+        h_fc3 = tf.nn.relu(tf.matmul(h_fc2_drop, W_fc3) + b_fc3)
+        #h_fc3 = tf.nn.relu(tf.matmul(h_fc2, W_fc3) + b_fc3)
+
+    # FC4
+    with tf.name_scope("FC4"):
+        fc4_dim = 256
+        #fc4_dim = 512
+        W_fc4 = weight_variable([fc3_dim, fc4_dim])
+        b_fc4 = weight_variable([fc4_dim])
+        h_fc4 = tf.nn.relu(tf.matmul(h_fc3, W_fc4) + b_fc4)
+
+    # FC5
+    with tf.name_scope("FC5"):
+        fc5_dim = 128
+        #fc5_dim = 256
+        W_fc5 = weight_variable([fc4_dim, fc5_dim])
+        b_fc5 = weight_variable([fc5_dim])
+        h_fc5 = tf.nn.relu(tf.matmul(h_fc4, W_fc5) + b_fc5)
+
+    # FC6
+    with tf.name_scope("FC6"):
+        fc6_dim = 128 
+        W_fc6 = weight_variable([fc5_dim, fc6_dim])
+        b_fc6 = weight_variable([fc6_dim])
+        h_fc6 = tf.nn.relu(tf.matmul(h_fc5, W_fc6) + b_fc6)
+
+    # dropout
+    with tf.name_scope("Dropout2"):
+        h_fc6_drop = tf.nn.dropout(h_fc6, keep_prob)
+
+    # FC7
+    with tf.name_scope("FC7"):
+        fc7_dim = 128
+        #fc7_dim = 256
+        W_fc7 = weight_variable([fc6_dim, fc7_dim])
+        b_fc7 = weight_variable([fc7_dim])
+        #h_fc7 = tf.nn.relu(tf.matmul(h_fc6, W_fc7) + b_fc7)
+        h_fc7 = tf.nn.relu(tf.matmul(h_fc6_drop, W_fc7) + b_fc7)
+
+    # FC8
+    with tf.name_scope("FC8"):
+        fc8_dim = 256
+        #fc8_dim = 512
+        W_fc8 = weight_variable([fc7_dim, fc8_dim])
+        b_fc8 = weight_variable([fc8_dim])
+        h_fc8 = tf.nn.relu(tf.matmul(h_fc7, W_fc8) + b_fc8)
+
+    # FC9
+    with tf.name_scope("FC9"):
+        fc9_dim = 512
+        #fc9_dim = 1024
+        W_fc9 = weight_variable([fc8_dim, fc9_dim])
+        b_fc9 = weight_variable([fc9_dim])
+        h_fc9 = tf.nn.relu(tf.matmul(h_fc8, W_fc9) + b_fc9)
+
+
+    # FC10
+    with tf.name_scope("FC10"):
+        fc10_dim = 1024
+        #fc10_dim = 2048
+        W_fc10 = weight_variable([fc9_dim, fc10_dim])
+        b_fc10 = weight_variable([fc10_dim])
+        h_fc10 = tf.nn.relu(tf.matmul(h_fc9, W_fc10) + b_fc10)
+
+    # dropout
+    with tf.name_scope("Dropout3"):
+        h_fc10_drop = tf.nn.dropout(h_fc10, keep_prob)
+
+    # FC11
+    with tf.name_scope("FC11"):
+        fc11_dim = 2048
+        #fc11_dim = 4096
+        W_fc11 = weight_variable([fc10_dim, fc11_dim])
+        b_fc11 = weight_variable([fc11_dim])
+        h_fc11 = tf.nn.relu(tf.matmul(h_fc10_drop, W_fc11) + b_fc11)
+
+    # FC12
+    with tf.name_scope("FC12"):
+        fc12_dim = x_dim
+        W_fc12 = weight_variable([fc11_dim, fc12_dim])
+        b_fc12 = weight_variable([fc12_dim])
+        #y = tf.nn.relu(tf.matmul(h_fc11, W_fc12) + b_fc12)
+        y = tf.matmul(h_fc11, W_fc12) + b_fc12
+
+
+    # LOSS 
+    with tf.name_scope("loss"):
+        #loss = tf.reduce_mean(tf.squared_difference(y, x))
+        loss = tf.sqrt(tf.reduce_mean(tf.square(y-x)))
+        tf.scalar_summary("loss", loss)
+
+        # summary
+        summary_op = tf.merge_all_summaries()
+    return loss, y
+
+
+
+def build_model_l1_freqSum(x, x_dim, keep_prob, gamma=0.00001):
+    # FC1
+    with tf.name_scope("FC1"):
+        fc1_dim = 2048
+        W_fc1 = weight_variable([x_dim, fc1_dim])
+        b_fc1 = weight_variable([fc1_dim])
+        h_fc1 = tf.nn.relu(tf.matmul(x, W_fc1) + b_fc1)
+
+    # FC2
+    with tf.name_scope("FC2"):
+        fc2_dim = 1024
+        W_fc2 = weight_variable([fc1_dim, fc2_dim])
+        b_fc2 = weight_variable([fc2_dim])
+        h_fc2 = tf.nn.relu(tf.matmul(h_fc1, W_fc2) + b_fc2)
+
+     # dropout
+    with tf.name_scope("Dropout1"):
+        h_fc2_drop = tf.nn.dropout(h_fc2, keep_prob)
+
+    # FC3
+    with tf.name_scope("FC3"):
+        fc3_dim = 512
+        W_fc3 = weight_variable([fc2_dim, fc3_dim])
+        b_fc3 = weight_variable([fc3_dim])
+        h_fc3 = tf.nn.relu(tf.matmul(h_fc2_drop, W_fc3) + b_fc3)
+
+    # FC4
+    with tf.name_scope("FC4"):
+        fc4_dim = 256
+        W_fc4 = weight_variable([fc3_dim, fc4_dim])
+        b_fc4 = weight_variable([fc4_dim])
+        h_fc4 = tf.nn.relu(tf.matmul(h_fc3, W_fc4) + b_fc4)
+
+    # FC5
+    with tf.name_scope("FC5"):
+        fc5_dim = 128
+        W_fc5 = weight_variable([fc4_dim, fc5_dim])
+        b_fc5 = weight_variable([fc5_dim])
+        h_fc5 = tf.nn.relu(tf.matmul(h_fc4, W_fc5) + b_fc5)
+
+    # FC6
+    with tf.name_scope("FC6"):
+        fc6_dim = 128
+        W_fc6 = weight_variable([fc5_dim, fc6_dim])
+        b_fc6 = weight_variable([fc6_dim])
+        h_fc6 = tf.nn.relu(tf.matmul(h_fc5, W_fc6) + b_fc6)
+
+    # dropout
+    with tf.name_scope("Dropout2"):
+        h_fc6_drop = tf.nn.dropout(h_fc6, keep_prob)
+
+    # FC7
+    with tf.name_scope("FC7"):
+        fc7_dim = 128
+        W_fc7 = weight_variable([fc6_dim, fc7_dim])
+        b_fc7 = weight_variable([fc7_dim])
+        h_fc7 = tf.nn.relu(tf.matmul(h_fc6_drop, W_fc7) + b_fc7)
+
+    # FC8
+    with tf.name_scope("FC8"):
+        fc8_dim = 256
+        W_fc8 = weight_variable([fc7_dim, fc8_dim])
+        b_fc8 = weight_variable([fc8_dim])
+        h_fc8 = tf.nn.relu(tf.matmul(h_fc7, W_fc8) + b_fc8)
+
+    # FC9
+    with tf.name_scope("FC9"):
+        fc9_dim = 512
+        W_fc9 = weight_variable([fc8_dim, fc9_dim])
+        b_fc9 = weight_variable([fc9_dim])
+        h_fc9 = tf.nn.relu(tf.matmul(h_fc8, W_fc9) + b_fc9)
+
+    # dropout
+    with tf.name_scope("Dropout3"):
+        h_fc9_drop = tf.nn.dropout(h_fc9, keep_prob)
+
+    # FC10
+    with tf.name_scope("FC10"):
+        fc10_dim = 1024
+        W_fc10 = weight_variable([fc9_dim, fc10_dim])
+        b_fc10 = weight_variable([fc10_dim])
+        h_fc10 = tf.nn.relu(tf.matmul(h_fc9_drop, W_fc10) + b_fc10)
+
+    # FC11
+    with tf.name_scope("FC11"):
+        fc11_dim = 2048
+        W_fc11 = weight_variable([fc10_dim, fc11_dim])
+        b_fc11 = weight_variable([fc11_dim])
+        h_fc11 = tf.nn.relu(tf.matmul(h_fc10, W_fc11) + b_fc11)
+
+    # FC12
+    with tf.name_scope("FC12"):
+        fc12_dim = x_dim
+        W_fc12 = weight_variable([fc11_dim, fc12_dim])
+        b_fc12 = weight_variable([fc12_dim])
+        y = tf.matmul(h_fc11, W_fc12) + b_fc12
+
+
+    # LOSS 
+    with tf.name_scope("loss"):
+        loss = tf.reduce_mean(tf.squared_difference(y, x))
+        l1_loss = tf.reduce_sum(tf.abs(W_fc1)) + \
+                  tf.reduce_sum(tf.abs(W_fc2)) + \
+                  tf.reduce_sum(tf.abs(W_fc3)) + \
+                  tf.reduce_sum(tf.abs(W_fc4)) +  \
+                  tf.reduce_sum(tf.abs(W_fc5)) +  \
+                  tf.reduce_sum(tf.abs(W_fc6)) + \
+                  tf.reduce_sum(tf.abs(W_fc7)) + \
+                  tf.reduce_sum(tf.abs(W_fc8)) +  \
+                  tf.reduce_sum(tf.abs(W_fc9)) +  \
+                  tf.reduce_sum(tf.abs(W_fc10)) + \
+                  tf.reduce_sum(tf.abs(W_fc11)) + \
+                  tf.reduce_sum(tf.abs(W_fc12)) 
+        loss += gamma * l1_loss
+        tf.scalar_summary("loss", loss)
+
+        # summary
+        summary_op = tf.merge_all_summaries()
+    return loss, y
+
+
+
+def main(_):
+    ##################################################################
+    # Read data 
+    sub_volumes_dir = get_input_data_path(FLAGS.model, FLAGS.data_base_dir)
+    eeg = eeg_data()
+    if FLAGS.data_type == 'subsample':
+        eeg.get_data(sub_volumes_dir, fake=FLAGS.test)
+    else:
+        eeg.get_data(sub_volumes_dir, num_data_sec=-1,  fake=FLAGS.test)
+    data = eeg.images
+    x_dim = data.shape[1]
+
+    # reset everything
+    tf.reset_default_graph()
+    model_path = FLAGS.trained_model_base_dir
+
+    # Input placeholder for input variables
+    with tf.name_scope("input"):
+        x = tf.placeholder(tf.float32, [None, x_dim])
+        dropout_keep_prob = tf.placeholder(tf.float32)
+
+
+
+    # BUILD MODEL
+    # L1 regularization gamma
+    gamma = FLAGS.gamma
+    model_path = get_data_path(FLAGS.model, FLAGS.trained_model_base_dir)
+    if FLAGS.model == 'big':
+        print("Doing big model ...")
+        loss, decoded = build_model_big(x, x_dim, dropout_keep_prob)
+        logs_path = "/tmp/eeg/logs/big"
+        model_file_prefix = model_path + '/' + 'big_epoch_'
+    elif FLAGS.model == 'freqSumSmall':
+        print("Doing small model with freqSum model ...")
+        loss, decoded = build_model_l1_freqSum(x, x_dim, dropout_keep_prob)
+        logs_path = "/tmp/eeg/logs/freqSumSmall"
+        model_file_prefix = model_path + '/' + 'freqSumSmall_epoch_'
+    elif FLAGS.model == 'freqSumBig':
+        print("Doing big model with freqSum model ...")
+        dims = [18715, 1024, 1024, 512, 256, 128]
+        #loss, decoded = build_model_freqSumShort(x, dims, dropout_keep_prob)
+        loss, decoded, l1_loss = build_model_freqSum_TiedWeight(x, x_dim, dropout_keep_prob)
+        #loss, decoded, l1_loss = build_model_freqSum_TiedWeightNoDropout(x, x_dim, dropout_keep_prob)
+        #loss, decoded = build_model_freqSum(x, x_dim, dropout_keep_prob)
+        logs_path = "/tmp/eeg/logs/freqSumBig"
+        model_file_prefix = model_path + '/' + 'freqSumBig_epoch_'
+    else:
+        print("Doing small L1 model ...")
+        loss, decoded = build_model_l1(x, x_dim, dropout_keep_prob, gamma)
+        logs_path = "/tmp/eeg/logs/small"
+        model_file_prefix = model_path + '/' + 'small_gamma_' + str(gamma) +\
+                '_epoch_'
+
+    if not os.path.exists(model_path):
+        os.makedirs(model_path)
+
+    global_step = tf.Variable(0, name="global_step", trainable=False)
+
+    # OPTIMIZER
+    decay_rate = 0.8
+    lr_rate = tf.train.exponential_decay(
+            FLAGS.learning_rate, global_step,
+            5000, decay_rate, staircase=True)
+    train_step = tf.train.AdamOptimizer(
+                    learning_rate=lr_rate).\
+                    minimize(loss, global_step=global_step) 
+
+    #momentum = 0.9
+    # define the training paramters and model, 
+    #train_step = tf.train.MomentumOptimizer(
+    #        lr_rate, momentum, use_nesterov=True).minimize(
+    #                loss, global_step=global_step) 
+
+
+
+    # Create summaries to visualize weights
+#    for var in tf.trainable_variables():
+#        tf.histogram_summary(var.name, var)
+
+    # Summarize all gradients
+#    grads = tf.gradients(loss, tf.trainable_variables())
+#    grads = list(zip(grads, tf.trainable_variables()))
+#    for grad, var in grads:
+#        tf.histogram_summary(var.name + '/gradient', grad)
+    #####################################################################
+
+
+    ######################################################################
+    # Start training
+    training_epoches = FLAGS.num_epochs
+    batch_size = FLAGS.batch_size
+    display_step = 20
+    total_batches = data.shape[0] // batch_size
+    num_epochs_save = FLAGS.num_epochs_save
+
+    # saver to save and restore all variables
+    saver = tf.train.Saver()
+
+    # summary
+    summary_op = tf.merge_all_summaries()
+
+    with tf.Session() as sess:
+        sess.run(tf.initialize_all_variables())
+        writer = tf.train.SummaryWriter(logs_path, graph=tf.get_default_graph())
+        for epoch in range(training_epoches):
+            avg_cost = 0.
+            batch_idx = 0
+            for batch in  eeg.iterate_minibatches(batch_size, shuffle=True):
+                batch_idx += 1
+                batch_xs = batch
+                feeds = {x: batch_xs, dropout_keep_prob: 0.5}
+                _, step, summary = sess.run([train_step, global_step, summary_op], feed_dict=feeds)
+
+                # write log
+                writer.add_summary(summary, step)
+
+                train_loss = loss.eval({x: batch_xs, dropout_keep_prob: 1.0})
+                avg_cost += train_loss
+                if batch_idx % display_step == 0:
+                    print('  step %6d, loss = %6.5f' % (batch_idx, train_loss))
+
+            eval_loss = loss.eval({x: eeg._test, dropout_keep_prob: 1.0})
+            l1_loss_network = l1_loss.eval({x: eeg._test, dropout_keep_prob: 1.0})
+            current_step = tf.train.global_step(sess, global_step)
+            avg_epoch_loss = avg_cost / total_batches
+            print('Epoch %6d, step %6d, l1_loss= %6.5f, agv_loss= %6.5f, eval_los= %6.5f' % (epoch, current_step, l1_loss_network, avg_epoch_loss, eval_loss))
+
+            if (epoch+1) % num_epochs_save == 0:
+                model_file_fullpath = model_file_prefix + str(epoch+1) + '_' + datetime.now().strftime('%Y-%m-%d-%H%M%S') + '.ckpt'
+                # retrieve the current global_step
+                #current_step = tf.train.global_step(sess, global_step)
+                save_path = saver.save(sess, model_file_fullpath, global_step=current_step)
+                print("Model saved in file: %s" % save_path)
+
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--data_base_dir', type=str, 
+        default='/home/chuong/EEG-Project/processed_data',
+        help='Directory for storing input data')
+    parser.add_argument('--trained_model_base_dir', type=str, 
+        default='/home/chuong/EEG-Project/trained_models',
+        help='Output directory')
+    parser.add_argument('--model', type=str, 
+        default='big', help='Model size: big, small')
+    parser.add_argument('--data_type', type=str, 
+        default='subsample', help='Subsampling (subsample, freqSum)')
+    parser.add_argument('--num_epochs', type=int, default=50, 
+        help='Number of epochs')
+    parser.add_argument('--num_epochs_save', type=int, 
+        default=10, help='Number epochs to trigger model saving to disk')
+    parser.add_argument('--batch_size', type=int, 
+        default=32, help='Mini-batch size')
+    parser.add_argument('--learning_rate', type=float , 
+        default=1e-6, help='Learning rate')
+    parser.add_argument('--gamma', type=float , 
+        default=1e-7, help='Regularization gain')
+    parser.add_argument('--test', type=bool, 
+        default=False, help='True for fake data')
+
+    FLAGS, unparsed = parser.parse_known_args()
+    #tf.app.run(main=main, argv=[sys.argv[0]] + unparsed)
+    tf.app.run(main=main)

@@ -1,0 +1,149 @@
+# Auto-encoder for 2D cortex slices
+# Chuong Nguyen
+# 07/11/2017
+from __future__ import print_function
+
+import tensorflow as tf
+import numpy as np
+import h5py
+import glob
+import os
+from eeg_input_data import eeg_data
+
+def weight_variable(shape):
+    initial = tf.truncated_normal(shape, stddev=0.1)
+    return tf.Variable(initial)
+
+def bias_variable(shape):
+    initial = tf.constant(0.1, shape=shape)
+    return tf.Variable(initial)
+
+#def conv2d(x, W, strides=strides, padding=padding):
+#    return tf.nn.conv2d(x, W, strides=strides, padding=padding)
+
+#def max_pool(x, ksize=ksize, strides=strides, padding=padding):
+#    return tf.nn.max_pool(x, ksize, strides, padding=padding)
+
+
+# Read data 
+sub_volumes_dir = '/data1/CHUONG_DATA/ChuongWork/Data4DeepLearning/sub_volumes'
+eeg = eeg_data()
+eeg.get_data(sub_volumes_dir, fake=False)
+data = eeg.images
+x_dim = data.shape[1]
+
+
+# L1 regularization
+gamma = 0.0001
+
+# reset everything
+tf.reset_default_graph()
+logs_path = "/tmp/eeg/logs/"
+model_path = '/data1/CHUONG_DATA/ChuongWork/Data4DeepLearning/results'
+
+
+# put placeholder for input variables
+with tf.name_scope("input"):
+    x = tf.placeholder(tf.float32, [None, x_dim])
+    dropout_keep_prob = tf.placeholder(tf.float32)
+
+
+#def build_model(x, keep_prob):
+# FC1
+with tf.name_scope("FC1"):
+    fc1_dim = 256 
+    W_fc1 = weight_variable([x_dim, fc1_dim])
+    b_fc1 = weight_variable([fc1_dim])
+    h_fc1 = tf.nn.relu(tf.matmul(x, W_fc1) + b_fc1)
+
+# FC2
+with tf.name_scope("FC2"):
+    fc2_dim = 128
+    W_fc2 = weight_variable([fc1_dim, fc2_dim])
+    b_fc2 = weight_variable([fc2_dim])
+    h_fc2 = tf.nn.relu(tf.matmul(h_fc1, W_fc2) + b_fc2)
+
+# FC3
+with tf.name_scope("FC3"):
+    fc3_dim = 64
+    W_fc3 = weight_variable([fc2_dim, fc3_dim])
+    b_fc3 = weight_variable([fc3_dim])
+    h_fc3 = tf.nn.relu(tf.matmul(h_fc2, W_fc3) + b_fc3)
+
+# dropout
+with tf.name_scope("Dropout"):
+    h_fc3_drop = tf.nn.dropout(h_fc3, dropout_keep_prob)
+
+# FC4
+with tf.name_scope("FC4"):
+    fc4_dim = 128 
+    W_fc4 = weight_variable([fc3_dim, fc4_dim])
+    b_fc4 = weight_variable([fc4_dim])
+    h_fc4 = tf.nn.relu(tf.matmul(h_fc3_drop, W_fc4) + b_fc4)
+
+# FC5
+with tf.name_scope("FC5"):
+    fc5_dim = 256 
+    W_fc5 = weight_variable([fc4_dim, fc5_dim])
+    b_fc5 = weight_variable([fc5_dim])
+    h_fc5 = tf.nn.relu(tf.matmul(h_fc4, W_fc5) + b_fc5)
+
+# FC6
+with tf.name_scope("FC6"):
+    fc6_dim = x_dim
+    W_fc6 = weight_variable([fc5_dim, fc6_dim])
+    b_fc6 = weight_variable([fc6_dim])
+    y = tf.nn.sigmoid(tf.matmul(h_fc5, W_fc6) + b_fc6)
+
+# LOSS 
+with tf.name_scope("loss"):
+    loss = tf.reduce_mean(tf.squared_difference(y, x))
+    l1_loss = tf.reduce_sum(tf.abs(W_fc1)) + \
+              tf.reduce_sum(tf.abs(W_fc2)) + \
+              tf.reduce_sum(tf.abs(W_fc3)) + \
+              tf.reduce_sum(tf.abs(W_fc4)) +  \
+              tf.reduce_sum(tf.abs(W_fc5)) +  \
+              tf.reduce_sum(tf.abs(W_fc6))
+    loss += gamma * l1_loss
+    tf.scalar_summary("loss", loss)
+
+summary_op = tf.merge_all_summaries()
+
+# OPTIMIZER
+train_step = tf.train.AdamOptimizer(learning_rate=0.00001).minimize(loss) 
+
+
+# Start training
+training_epoches = 50
+batch_size = 4
+display_step = 10
+total_batches = data.shape[0] // batch_size
+
+# saver to save and restore all variables
+saver = tf.train.Saver()
+
+with tf.Session() as sess:
+    sess.run(tf.initialize_all_variables())
+    writer = tf.train.SummaryWriter(logs_path, graph=tf.get_default_graph())
+    for epoch in range(training_epoches):
+        avg_cost = 0.
+        batch_idx = 0
+        for batch in  eeg.iterate_minibatches(batch_size, shuffle=True):
+            batch_idx += 1
+            batch_xs = batch
+            feeds = {x: batch_xs, dropout_keep_prob: 0.5}
+            _, summary = sess.run([train_step, summary_op], feed_dict=feeds)
+
+            # write log
+            writer.add_summary(summary, epoch*total_batches + batch_idx)
+
+            train_loss = loss.eval({x: batch_xs, dropout_keep_prob: 1.0})
+            avg_cost += train_loss
+            if batch_idx % display_step == 0:
+                print('    step %6d, loss = %6.5f' % (batch_idx, train_loss))
+
+        print('Epoch %6d, agv_loss = %6.5f' % (epoch, avg_cost/total_batches))
+        if (epoch+1) % 10 == 0:
+            model_file = model_path + '/' + 'model_epoch_' + str(epoch) + '.ckpt'
+            save_path = saver.save(sess, model_file)
+            print("Model saved in file: %s" % save_path)
