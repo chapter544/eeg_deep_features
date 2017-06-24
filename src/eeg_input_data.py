@@ -46,8 +46,8 @@ class eeg_data(object):
 
         max_val = np.max(self._images)
         min_val = np.min(self._images)
-        self._images = np.divide((self._images - min_val), (max_val-min_val)) *2 - 1 
-        self._test = np.divide((self._test - min_val), (max_val-min_val)) * 2 - 1
+        self._images = np.divide((self._images - min_val), (max_val-min_val))
+        self._test = np.divide((self._test - min_val), (max_val-min_val))
 
         #self._images = self._images / np.max(self._images)
         #self._images = (self._images - mean_data) / std_data

@@ -114,9 +114,11 @@ def generate_subsample_volumes_except_time(data_dir, out_dir):
         end_time_sec = None
         subsample_mat_volume(data_dir + '/' + fName, start_time_sec, end_time_sec, freq_trunc, cortex_sample_rate)
 
+
 def generate_subsample_volumes_freqSum(data_dir, out_dir):
     os.chdir(data_dir)
     for fName in glob.glob("*.mat"):
+        print("Doing %s ..." % fName)
         subsample_mat_volume_freqSum(data_dir + '/' + fName, out_dir)
 
 
@@ -130,14 +132,16 @@ def generate_subsample_a_volume(data_dir, start_time_sec, end_time_sec, freq_tru
 
 
 def main():
-    data_dir = '/data1/CHUONG_DATA/ChuongWork/Data4DeepLearning/invcomp'
+    #data_dir = '/data1/CHUONG_DATA/ChuongWork/Data4DeepLearning/invcomp'
+    data_dir = '/data2/Data4Deeplearning/invcomp'
 
     # Generate subvolumes with sampling on both time, frequency, and 
     # cortex (space) axes.
     #out_dir = '/data1/CHUONG_DATA/ChuongWork/Data4DeepLearning/sub_volumes'
     #generate_subsample_volumes(data_dir, out_dir)
 
-    out_dir = '/data1/CHUONG_DATA/ChuongWork/Data4DeepLearning/volumes_freqSum'
+    #out_dir = '/data1/CHUONG_DATA/ChuongWork/Data4DeepLearning/volumes_freqSum'
+    out_dir = '/home/chuong/EEG-Project/volumes_freqSum'
     generate_subsample_volumes_freqSum(data_dir, out_dir)
 
     # Generate subvolumes with sampling on both time, frequency, and 

@@ -6,8 +6,8 @@
 #    --model='freqSumBig' 
 #    --data_type='freqSum'
 
-# no bias training
-python src/auto-encoder.py --data_dir='/data1/CHUONG_DATA/ChuongWork/Data4DeepLearning/processed_data/volumes_freqSum' --trained_output='/data1/CHUONG_DATA/ChuongWork/Data4DeepLearning/results' --model='freqSumBig' --data_type='freqSum' --batch_size=64 --num_epochs=1000 --learning_rate=1e-5 --num_epochs_save=200 --gamma=1e-7
+# 
+python src/auto-encoder.py --data_dir='/home/chuong/EEG-Project/volumes_freqSum' --trained_models_base_dir='/home/chuong/EEG-Project/trained_models' --model='freqSum_TiedWeight_Big' --data_type='freqSum' --batch_size=64 --num_epochs=400 --learning_rate=1e-4 --decay_rate=0.8 --decay_step=5000 --num_epochs_save=100 --gamma=1e-7
 
 #python src/auto-encoder.py --data_dir='/data1/CHUONG_DATA/ChuongWork/Data4DeepLearning/processed_data/volumes_freqSum' --trained_output='/data1/CHUONG_DATA/ChuongWork/Data4DeepLearning/results' --model='freqSumBig' --data_type='freqSum' --batch_size=64 --num_epochs=1000 --learning_rate=1e-4 --num_epochs_save=200 --gamma=1e-7
 

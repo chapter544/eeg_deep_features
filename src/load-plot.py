@@ -1,12 +1,15 @@
 import pickle
-import matplotlib.pyplot as plt 
 import argparse
 import os
-from utils import get_input_data_path, get_data_path
+from utils import get_input_data_path, get_data_path_with_timestamp
 
 
 from datetime import datetime
 import argparse
+
+import matplotlib as mpl
+mpl.use('Agg')
+import matplotlib.pyplot as plt 
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--model', type=str, 

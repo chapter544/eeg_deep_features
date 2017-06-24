@@ -11,7 +11,7 @@ import os
 import pickle
 from datetime import datetime
 import argparse
-from utils import get_input_data_path, get_data_path
+from utils import get_input_data_path, get_data_path_with_timestamp
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--model', type=str, 
@@ -150,7 +150,7 @@ if model == "small" or model == "big":
     b.append(b1)
     b.append(b2)
     b.append(b3)
-elif model == "freqSumSmall" or model == "freqSumBig":
+elif model == "freqSumSmall" or model == "freqSumBig" or model == 'freqSum_TiedWeight_Big' or model == 'freqSum_TiedWeight':
     # get variables using scope FC1
     W_fc1 = tf.get_collection(tf.GraphKeys.VARIABLES, scope='FC1')[0]
     b_fc1 = tf.get_collection(tf.GraphKeys.VARIABLES, scope='FC1')[1]
