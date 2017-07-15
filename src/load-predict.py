@@ -11,7 +11,7 @@ import os
 import pickle
 from datetime import datetime
 import argparse
-from utils import get_input_data_path, get_data_path
+from utils import get_input_data_path, get_data_path_with_timestamp
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--model', type=str, 
@@ -126,7 +126,7 @@ graph = tf.get_default_graph()
 # this name matches the tensorboard variable also.
 # for i in tf.get_collection(tf.GraphKeys.VARIABLES, scope='FC1'):
 #   print i.name
-if model == "small" or model == "big":
+if model == "small" or model == "big" or model == 'freqSum_NoTiedWeight_Small':
     # get variables using scope FC1
     W_fc1 = tf.get_collection(tf.GraphKeys.VARIABLES, scope='FC1')[0]
     b_fc1 = tf.get_collection(tf.GraphKeys.VARIABLES, scope='FC1')[1]
@@ -150,7 +150,7 @@ if model == "small" or model == "big":
     b.append(b1)
     b.append(b2)
     b.append(b3)
-elif model == "freqSumSmall" or model == "freqSumBig":
+elif model == "freqSumSmall" or model == "freqSumBig" or model == 'freqSum_TiedWeight_Big' or model == 'freqSum_TiedWeight' or model == 'freqSum_NoTiedWeight_Big' or model == 'freqSum_NoTiedWeight_Medium':
     # get variables using scope FC1
     W_fc1 = tf.get_collection(tf.GraphKeys.VARIABLES, scope='FC1')[0]
     b_fc1 = tf.get_collection(tf.GraphKeys.VARIABLES, scope='FC1')[1]
@@ -166,32 +166,34 @@ elif model == "freqSumSmall" or model == "freqSumBig":
     # get variables using scope FC4
     W_fc4 = tf.get_collection(tf.GraphKeys.VARIABLES, scope='FC4')[0]
     b_fc4 = tf.get_collection(tf.GraphKeys.VARIABLES, scope='FC4')[1]
+    [w_fc1, b1, w_fc2, b2, w_fc3, b3, w_fc4, b4] = sess.run([W_fc1, b_fc1, W_fc2, b_fc2, W_fc3, b_fc3, W_fc4, b_fc4])
+
 
     # get variables using scope FC5
-    W_fc5 = tf.get_collection(tf.GraphKeys.VARIABLES, scope='FC5')[0]
-    b_fc5 = tf.get_collection(tf.GraphKeys.VARIABLES, scope='FC5')[1]
+    #W_fc5 = tf.get_collection(tf.GraphKeys.VARIABLES, scope='FC5')[0]
+    #b_fc5 = tf.get_collection(tf.GraphKeys.VARIABLES, scope='FC5')[1]
 
     # get variables using scope FC6
-    W_fc6 = tf.get_collection(tf.GraphKeys.VARIABLES, scope='FC6')[0]
-    b_fc6 = tf.get_collection(tf.GraphKeys.VARIABLES, scope='FC6')[1]
+    #W_fc6 = tf.get_collection(tf.GraphKeys.VARIABLES, scope='FC6')[0]
+    #b_fc6 = tf.get_collection(tf.GraphKeys.VARIABLES, scope='FC6')[1]
 
-    [w_fc1, b1, w_fc2, b2, w_fc3, b3, w_fc4, b4, w_fc5, b5, w_fc6, b6] = sess.run([W_fc1, b_fc1, W_fc2, b_fc2, W_fc3, b_fc3, W_fc4, b_fc4, W_fc5, b_fc5, W_fc6, b_fc6])
+    #[w_fc1, b1, w_fc2, b2, w_fc3, b3, w_fc4, b4, w_fc5, b5, w_fc6, b6] = sess.run([W_fc1, b_fc1, W_fc2, b_fc2, W_fc3, b_fc3, W_fc4, b_fc4, W_fc5, b_fc5, W_fc6, b_fc6])
 
     W = []
     W.append(w_fc1)
     W.append(w_fc2)
     W.append(w_fc3)
     W.append(w_fc4)
-    W.append(w_fc5)
-    W.append(w_fc6)
+    #W.append(w_fc5)
+    #W.append(w_fc6)
 
     b = []
     b.append(b1)
     b.append(b2)
     b.append(b3)
     b.append(b4)
-    b.append(b5)
-    b.append(b6)
+    #b.append(b5)
+    #b.append(b6)
 
 # close tensorflow session
 sess.close()
@@ -214,9 +216,5 @@ data_with_bias = get_feature_by_subject(sub_volumes_dir, W, b)
 dump_file_with_bias = output_dir + '/' + 'volumes_time_feature_with_bias.pkl'
 with open(dump_file_with_bias, 'wb') as output:
     pickle.dump(data_with_bias, output)
-    pickle.dump(w_fc1, output)
-    pickle.dump(w_fc2, output)
-    pickle.dump(w_fc3, output)
-    pickle.dump(b1, output)
-    pickle.dump(b2, output)
-    pickle.dump(b3, output)
+    pickle.dump(W, output)
+    pickle.dump(b, output)

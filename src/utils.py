@@ -14,6 +14,21 @@ def get_input_data_path(model, data_base_dir):
 	elif model == "freqSumBig":
 		# this is freqSum 
 		sub_volumes_dir = data_base_dir + '/' + 'volumes_freqSum'
+	elif model == "freqSum_TiedWeight":
+		# this is freqSum 
+		sub_volumes_dir = data_base_dir + '/' + 'volumes_freqSum'
+	elif model == "freqSum_TiedWeight_Big":
+		# this is freqSum 
+		sub_volumes_dir = data_base_dir + '/' + 'volumes_freqSum'
+	elif model == "freqSum_NoTiedWeight_Big":
+		# this is freqSum 
+		sub_volumes_dir = data_base_dir + '/' + 'volumes_freqSum'
+	elif model == "freqSum_NoTiedWeight_Small":
+		# this is freqSum 
+		sub_volumes_dir = data_base_dir + '/' + 'volumes_freqSum'
+	elif model == "freqSum_NoTiedWeight_Medium":
+		# this is freqSum 
+		sub_volumes_dir = data_base_dir + '/' + 'volumes_freqSum'
 	else:
 		raise Exception("Invalid model name")
 
@@ -21,6 +36,6 @@ def get_input_data_path(model, data_base_dir):
 
 
 
-def get_data_path(model, data_base_dir):
+def get_data_path_with_timestamp(model, data_base_dir):
 	time_postfix = datetime.now().strftime('%Y-%m-%d-%H%M%S')
 	return data_base_dir + '/' + model + '/' + time_postfix

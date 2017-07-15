@@ -14,8 +14,13 @@ import argparse
 import sys
 from datetime import datetime
 from eeg_input_data import eeg_data
-from utils import get_input_data_path, get_data_path
-from models.fc_freqSum_TiedWeight import build_fc_freqSum_TiedWeight, build_fc_freqSum_TiedWeight_NoBias, build_fc_freqSum_TiedWeight_NoDropout, build_fc_freqSum
+from utils import get_input_data_path, get_data_path_with_timestamp
+from models.fc_freqSum_TiedWeight import build_fc_freqSum_TiedWeight, build_fc_freqSum_TiedWeight_NoBias
+from models.fc_freqSum_TiedWeight import build_fc_freqSum_TiedWeight_NoDropout, build_fc_freqSum
+from models.fc_freqSum_TiedWeight import build_fc_freqSum_TiedWeight_Big
+from models.fc_freqSum_TiedWeight import build_fc_freqSum_NoTiedWeight_Big
+from models.fc_freqSum_TiedWeight import build_fc_freqSum_NoTiedWeight_Small
+from models.fc_freqSum_TiedWeight import build_fc_freqSum_NoTiedWeight_Medium
 import models
 
 FLAGS = None
@@ -40,9 +45,10 @@ def main(_):
     # Read data 
     sub_volumes_dir = get_input_data_path(FLAGS.model, FLAGS.data_base_dir)
     eeg = eeg_data()
-    if FLAGS.data_type == 'subsample':
+    
+    if FLAGS.data_type == 'subsample': # subsample on 3D axes
         eeg.get_data(sub_volumes_dir, fake=FLAGS.test)
-    else:
+    else: # no subsampling
         eeg.get_data(sub_volumes_dir, num_data_sec=-1,  fake=FLAGS.test)
     data = eeg.images
     x_dim = data.shape[1]
@@ -61,45 +67,50 @@ def main(_):
     # BUILD MODEL
     # L1 regularization gamma
     gamma = FLAGS.gamma
-    model_path = get_data_path(FLAGS.model, FLAGS.trained_model_base_dir)
+    model_path = get_data_path_with_timestamp(FLAGS.model, FLAGS.trained_model_base_dir)
     if FLAGS.model == 'big':
         print("Doing big model ...")
         loss, decoded = build_fc_big_freqFlatten(x, x_dim, dropout_keep_prob)
-        logs_path = "/tmp/eeg/logs/big"
-        model_file_prefix = models.model_path + '/' + 'big_epoch_'
     elif FLAGS.model == 'freqSumSmall':
         print("Doing small model with freqSum model ...")
         loss, decoded = build_fc_freqFlatten_L1(x, x_dim, dropout_keep_prob)
-        logs_path = "/tmp/eeg/logs/freqSumSmall"
-        model_file_prefix = model_path + '/' + 'freqSumSmall_epoch_'
-    elif FLAGS.model == 'freqSumBig':
-        print("Doing big model with freqSum model ...")
-        dims = [18715, 1024, 1024, 512, 256, 128]
-        #loss, decoded = build_model_freqSumShort(x, dims, dropout_keep_prob)
+    elif FLAGS.model == 'freqSum_TiedWeight_NoBias':
         loss, decoded, l1_loss = build_fc_freqSum_TiedWeight_NoBias(
                 x, x_dim, dropout_keep_prob)
-        #loss, decoded, l1_loss = build_fc_freqSum_TiedWeightNoDropout(
-        #       x, x_dim, dropout_keep_prob)
-        #loss, decoded = models.build_fc_freqSum(x, x_dim, dropout_keep_prob)
-        logs_path = "/tmp/eeg/logs/freqSumBig"
-        model_file_prefix = model_path + '/' + 'freqSumBig_epoch_'
+    elif FLAGS.model == 'freqSum_TiedWeight':
+        loss, decoded, l1_loss = build_fc_freqSum_TiedWeight(
+               x, x_dim, dropout_keep_prob)
+    elif FLAGS.model == 'freqSum_TiedWeight_Big':
+        loss, decoded, l1_loss = build_fc_freqSum_TiedWeight_Big(
+               x, x_dim, dropout_keep_prob)
+    elif FLAGS.model == 'freqSum_NoTiedWeight_Big':
+        loss, decoded, l1_loss = build_fc_freqSum_NoTiedWeight_Big(
+               x, x_dim, dropout_keep_prob)
+    elif FLAGS.model == 'freqSum_NoTiedWeight_Small':
+        loss, decoded, l1_loss = build_fc_freqSum_NoTiedWeight_Small(
+               x, x_dim, dropout_keep_prob)
+    elif FLAGS.model == 'freqSum_NoTiedWeight_Medium':
+        loss, decoded, l1_loss = build_fc_freqSum_NoTiedWeight_Medium(
+               x, x_dim, dropout_keep_prob)
     else:
         print("Doing small L1 model ...")
         loss, decoded = build_fc_freqSum_L1(x, x_dim, dropout_keep_prob, gamma)
-        logs_path = "/tmp/eeg/logs/small"
-        model_file_prefix = model_path + '/' + 'small_gamma_' + str(gamma) +\
-                '_epoch_'
+
+    logs_path = '/tmp/eeg/logs/' +  FLAGS.model
+    model_file_prefix = model_path + '/' + FLAGS.model + '_epoch_'
 
     if not os.path.exists(model_path):
         os.makedirs(model_path)
 
+
     global_step = tf.Variable(0, name="global_step", trainable=False)
 
     # OPTIMIZER
-    decay_rate = 0.8
+    decay_rate = FLAGS.decay_rate
+    decay_step = FLAGS.decay_step
     lr_rate = tf.train.exponential_decay(
             FLAGS.learning_rate, global_step,
-            5000, decay_rate, staircase=True)
+            decay_step, decay_rate, staircase=True)
     train_step = tf.train.AdamOptimizer(
                     learning_rate=lr_rate).\
                     minimize(loss, global_step=global_step) 
@@ -136,11 +147,13 @@ def main(_):
     saver = tf.train.Saver()
 
     # summary
-    summary_op = tf.merge_all_summaries()
+    #summary_op = tf.merge_all_summaries()
+    summary_op = tf.summary.merge_all()
 
     with tf.Session() as sess:
         sess.run(tf.initialize_all_variables())
-        writer = tf.train.SummaryWriter(logs_path, graph=tf.get_default_graph())
+        #writer = tf.train.SummaryWriter(logs_path, graph=tf.get_default_graph())
+        writer = tf.summary.FileWriter(logs_path, graph=tf.get_default_graph())
         for epoch in range(training_epoches):
             avg_cost = 0.
             batch_idx = 0
@@ -193,6 +206,10 @@ if __name__ == '__main__':
         default=32, help='Mini-batch size')
     parser.add_argument('--learning_rate', type=float , 
         default=1e-6, help='Learning rate')
+    parser.add_argument('--decay_rate', type=float , 
+        default=0.8, help='Decay rate')
+    parser.add_argument('--decay_step', type=float , 
+        default=5000, help='Decay step')
     parser.add_argument('--gamma', type=float , 
         default=1e-7, help='Regularization gain')
     parser.add_argument('--test', type=bool, 
