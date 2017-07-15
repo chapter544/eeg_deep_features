@@ -18,6 +18,9 @@ from utils import get_input_data_path, get_data_path_with_timestamp
 from models.fc_freqSum_TiedWeight import build_fc_freqSum_TiedWeight, build_fc_freqSum_TiedWeight_NoBias
 from models.fc_freqSum_TiedWeight import build_fc_freqSum_TiedWeight_NoDropout, build_fc_freqSum
 from models.fc_freqSum_TiedWeight import build_fc_freqSum_TiedWeight_Big
+from models.fc_freqSum_TiedWeight import build_fc_freqSum_NoTiedWeight_Big
+from models.fc_freqSum_TiedWeight import build_fc_freqSum_NoTiedWeight_Small
+from models.fc_freqSum_TiedWeight import build_fc_freqSum_NoTiedWeight_Medium
 import models
 
 FLAGS = None
@@ -79,6 +82,15 @@ def main(_):
                x, x_dim, dropout_keep_prob)
     elif FLAGS.model == 'freqSum_TiedWeight_Big':
         loss, decoded, l1_loss = build_fc_freqSum_TiedWeight_Big(
+               x, x_dim, dropout_keep_prob)
+    elif FLAGS.model == 'freqSum_NoTiedWeight_Big':
+        loss, decoded, l1_loss = build_fc_freqSum_NoTiedWeight_Big(
+               x, x_dim, dropout_keep_prob)
+    elif FLAGS.model == 'freqSum_NoTiedWeight_Small':
+        loss, decoded, l1_loss = build_fc_freqSum_NoTiedWeight_Small(
+               x, x_dim, dropout_keep_prob)
+    elif FLAGS.model == 'freqSum_NoTiedWeight_Medium':
+        loss, decoded, l1_loss = build_fc_freqSum_NoTiedWeight_Medium(
                x, x_dim, dropout_keep_prob)
     else:
         print("Doing small L1 model ...")
