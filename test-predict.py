@@ -11,7 +11,9 @@ import matplotlib.pyplot as plt
 
 model = 'freqSumBig'
 trained_model_name='2017-06-20-095105'
-data_base_dir='/data1/CHUONG_DATA/ChuongWork/Data4DeepLearning/processed_data'
+meta_file = 'freqSumBig_epoch_500_2017-06-20-142652.ckpt-78500.meta'
+
+data_base_dir='/home/chuong/EEG=Project/processed_data'
 output_base_dir='/home/chuong/EEG-Project/output_features'
 sub_volumes_dir = get_input_data_path(model, data_base_dir)
 
@@ -21,13 +23,21 @@ def read_hdf5(fName):
     data = np.array(f['data'])
     return data
 
+def showMat(x):
+	plt.imshow(x)
+	plt.colorbar()
+	plt.show()
 
-trained_model_base_dir = '/data1/CHUONG_DATA/ChuongWork/Data4DeepLearning/trained_models'
+
+def matstat(x):
+	print("max: {}, min={}, mean={}, std={}".format(np.max(x), np.min(x), np.mean(x), np.std(x)))
+
+trained_model_base_dir = '/home/chuong/EEG-Project/trained_models'
 
 model_path = trained_model_base_dir + '/' + model  + '/' + trained_model_name
 
+meta_file_fullpath = model_path + '/' + meta_file
 
-meta_file_fullpath = model_path + '/' + 'freqSumBig_epoch_500_2017-06-20-142652.ckpt-78500.meta'
 
 # start tensorflow session
 sess = tf.Session()
@@ -98,14 +108,14 @@ v5 = v5 * (v5 > 0)
 v6 = v5.dot(w_fc6) + b6
 v6 = v6 * (v6 > 0)
 
-showMat(v6.transpose())
+
+
+
+showMat(v5.transpose())
 
 
 
 
 
 
-def showMat(x):
-	plt.imshow(x)
-	plt.colorbar()
-	plt.show()
+

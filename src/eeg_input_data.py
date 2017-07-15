@@ -12,7 +12,7 @@ class eeg_data(object):
         self._epochs_completed = 0
         self._index_in_epoch = 0
 
-    def get_data(self, data_dir, num_data_sec=180, fake=False):
+    def get_data(self, data_dir, num_data_sec=180, fake=False, normalization='normalize'):
         data = []
         if fake == False:
             os.chdir(data_dir)
@@ -36,22 +36,27 @@ class eeg_data(object):
         all_data = np.vstack(data)
         np.random.shuffle(all_data)
 
-        self._test = all_data[:500]
-        self._images = all_data[500:]
-
+        #self._test = all_data[:500]
+        #self._images = all_data[500:]
         #self._images = self._images[:64]
-
         #mean_data = np.mean(self._images)
         #std_data = np.std(self._images)
 
-        max_val = np.max(self._images)
-        min_val = np.min(self._images)
-        self._images = np.divide((self._images - min_val), (max_val-min_val)) *2 - 1 
-        self._test = np.divide((self._test - min_val), (max_val-min_val)) * 2 - 1
-
-        #self._images = self._images / np.max(self._images)
-        #self._images = (self._images - mean_data) / std_data
-        #self._test = (self._test - mean_data) / std_data
+        if normalization == 'scaling':
+            max_val = np.max(all_data)
+            min_val = np.min(all_data)
+            np.savez('scaling.npz', name1=max_val, name2=min_val)
+            self._test = all_data[:500]
+            self._images = all_data[500:]
+            self._images = np.divide((self._images - min_val), (max_val-min_val)) * 2.0  - 1.0 
+            self._test = np.divide((self._test - min_val), (max_val-min_val)) * 2.0 - 1.0
+        else:
+            mean_data = np.mean(all_data, axis=0)
+            std_data = np.std(all_data, axis=0)
+            np.savez('normalization.npz', name1=mean_data, name2=std_data)
+            all_data = (all_data - mean_data) / std_data
+            self._test = all_data[:500]
+            self._images = all_data[500:]
 
         self._labels = None
         self._num_examples = self._images.shape[0]
