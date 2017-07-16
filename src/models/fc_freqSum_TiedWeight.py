@@ -341,7 +341,8 @@ def build_fc_freqSum_NoTiedWeight_Medium(x, x_dim, keep_prob, gamma=1e-7):
         W_fc8 = weight_variable([fc7_dim, fc8_dim])
         b_fc8 = weight_variable([fc8_dim])
         #h_fc8 = tf.nn.sigmoid(tf.matmul(h_fc7_drop, W_fc8) + b_fc8)
-        h_fc8 = tf.nn.relu(tf.matmul(h_fc7, W_fc8) + b_fc8)
+        #h_fc8 = tf.nn.relu(tf.matmul(h_fc7, W_fc8) + b_fc8)
+        h_fc8 = tf.matmul(h_fc7, W_fc8) + b_fc8
 
     # FC9
     #with tf.name_scope("FC9"):
@@ -379,13 +380,14 @@ def build_fc_freqSum_NoTiedWeight_Medium(x, x_dim, keep_prob, gamma=1e-7):
 
     # LOSS 
     with tf.name_scope("loss"):
-        y = h_fc8
+        y = h_fc8 + 1e-10
         #loss = tf.reduce_mean(tf.squared_difference(y, x))
         l2_loss = tf.sqrt(tf.reduce_mean(tf.square(y-x)))
-        entropy_loss = - tf.reduce_mean(x * tf.log(tf.clip_by_value(y, 1e-10, 1.0)))
+        #entropy_loss = - tf.reduce_mean(x * tf.log(tf.clip_by_value(y, 1e-10, 1.0)))
+        entropy_loss = - tf.reduce_mean(x * tf.log(y))
 
-        loss = entropy_loss + l2_loss
-        #loss = l2_loss 
+        #loss = entropy_loss + l2_loss
+        loss = l2_loss 
 
         l1_loss_sum = tf.reduce_sum(tf.abs(W_fc1)) + \
                       tf.reduce_sum(tf.abs(W_fc2)) + \

@@ -50,7 +50,7 @@ def main(_):
     if FLAGS.data_type == 'subsample': # subsample on 3D axes
         eeg.get_data(sub_volumes_dir, fake=FLAGS.test)
     else: # no subsampling
-        eeg.get_data(sub_volumes_dir, num_data_sec=-1,  fake=FLAGS.test, normalization='scaling')
+        eeg.get_data(sub_volumes_dir, num_data_sec=-1,  fake=FLAGS.test, normalization=FLAGS.data_normalization)
     data = eeg.images
     x_dim = data.shape[1]
 
@@ -62,7 +62,6 @@ def main(_):
     with tf.name_scope("input"):
         x = tf.placeholder(tf.float32, [None, x_dim])
         dropout_keep_prob = tf.placeholder(tf.float32)
-
 
 
     # BUILD MODEL
@@ -220,6 +219,8 @@ if __name__ == '__main__':
         default=1e-7, help='Regularization gain')
     parser.add_argument('--test', type=bool, 
         default=False, help='True for fake data')
+    parser.add_argument('--data_normalization', type=str, 
+        default='scaling', help='Data normalization: scaling, normalize, none')
 
     FLAGS, unparsed = parser.parse_known_args()
     #tf.app.run(main=main, argv=[sys.argv[0]] + unparsed)
