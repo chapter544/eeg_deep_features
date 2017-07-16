@@ -45,18 +45,26 @@ class eeg_data(object):
         if normalization == 'scaling':
             max_val = np.max(all_data)
             min_val = np.min(all_data)
-            np.savez('scaling.npz', name1=max_val, name2=min_val)
+            print("Scaling features ....")
+            np.savez('scaling.npz', max_val=max_val, min_val=min_val)
             self._test = all_data[:500]
-            self._images = all_data[500:]
+            #self._images = all_data[500:]
+            self._images = all_data
             self._images = np.divide((self._images - min_val), (max_val-min_val)) * 2.0  - 1.0 
             self._test = np.divide((self._test - min_val), (max_val-min_val)) * 2.0 - 1.0
-        else:
+        elif normalization == 'normalize':
+            print("Normalizing features ....")
             mean_data = np.mean(all_data, axis=0)
             std_data = np.std(all_data, axis=0)
-            np.savez('normalization.npz', name1=mean_data, name2=std_data)
+            np.savez('normalization.npz', mean_val=mean_data, std_val=std_data)
             all_data = (all_data - mean_data) / std_data
             self._test = all_data[:500]
-            self._images = all_data[500:]
+            #self._images = all_data[500:]
+            self._images = all_data
+        else:
+            self._test = all_data[:500]
+            #self._images = all_data[500:]
+            self._images = all_data
 
         self._labels = None
         self._num_examples = self._images.shape[0]

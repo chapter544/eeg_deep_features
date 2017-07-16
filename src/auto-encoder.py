@@ -13,6 +13,7 @@ import os
 import argparse
 import sys
 from datetime import datetime
+from pkg_resources import parse_version
 from eeg_input_data import eeg_data
 from utils import get_input_data_path, get_data_path_with_timestamp
 from models.fc_freqSum_TiedWeight import build_fc_freqSum_TiedWeight, build_fc_freqSum_TiedWeight_NoBias
@@ -25,13 +26,13 @@ import models
 
 FLAGS = None
 
-def weight_variable(shape):
-    initial = tf.truncated_normal(shape, stddev=0.1)
-    return tf.Variable(initial)
+#def weight_variable(shape):
+#    initial = tf.truncated_normal(shape, stddev=0.1)
+#    return tf.Variable(initial)
 
-def bias_variable(shape):
-    initial = tf.constant(0.1, shape=shape)
-    return tf.Variable(initial)
+#def bias_variable(shape):
+#    initial = tf.constant(0.1, shape=shape)
+#    return tf.Variable(initial)
 
 #def conv2d(x, W, strides=strides, padding=padding):
 #    return tf.nn.conv2d(x, W, strides=strides, padding=padding)
@@ -45,11 +46,11 @@ def main(_):
     # Read data 
     sub_volumes_dir = get_input_data_path(FLAGS.model, FLAGS.data_base_dir)
     eeg = eeg_data()
-    
+
     if FLAGS.data_type == 'subsample': # subsample on 3D axes
         eeg.get_data(sub_volumes_dir, fake=FLAGS.test)
     else: # no subsampling
-        eeg.get_data(sub_volumes_dir, num_data_sec=-1,  fake=FLAGS.test)
+        eeg.get_data(sub_volumes_dir, num_data_sec=-1,  fake=FLAGS.test, normalization='scaling')
     data = eeg.images
     x_dim = data.shape[1]
 
@@ -147,13 +148,18 @@ def main(_):
     saver = tf.train.Saver()
 
     # summary
-    #summary_op = tf.merge_all_summaries()
-    summary_op = tf.summary.merge_all()
+    if parse_version(tf.__version__.rpartition('.')[0]) >= parse_version('0.12.0'):
+        summary_op = tf.summary.merge_all()
+    else:
+        summary_op = tf.merge_all_summaries()
 
     with tf.Session() as sess:
-        sess.run(tf.initialize_all_variables())
-        #writer = tf.train.SummaryWriter(logs_path, graph=tf.get_default_graph())
-        writer = tf.summary.FileWriter(logs_path, graph=tf.get_default_graph())
+        if parse_version(tf.__version__.rpartition('.')[0]) >= parse_version('0.12.0'):
+            sess.run(tf.global_variables_initializer())
+            writer = tf.summary.FileWriter(logs_path, graph=tf.get_default_graph())
+        else:
+            sess.run(tf.initialize_all_variables())
+            writer = tf.train.SummaryWriter(logs_path, graph=tf.get_default_graph())
         for epoch in range(training_epoches):
             avg_cost = 0.
             batch_idx = 0
