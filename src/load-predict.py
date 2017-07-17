@@ -20,6 +20,9 @@ parser.add_argument('--model', type=str,
 parser.add_argument('--trained_model_name', type=str, 
         default='', 
         help='Trained specific model directory')
+parser.add_argument('--data_normalization', type=str, 
+        default='normalize', 
+        help='Type of data normalization (normalize, scaling)')
 parser.add_argument('--data_base_dir', type=str, 
         default='/home/chuong/EEG-Project/processed_data', 
         help='Data base directory')
@@ -55,9 +58,10 @@ def read_hdf5(fName):
     return data
 
 
-def get_feature_by_subject(data_dir, W, b):
+def get_feature_by_subject(data_dir, W, b, normalization='normalize'):
     data = dict()
     os.chdir(data_dir)
+
     for fName in glob.glob("*.h5"):
         fNameFullPath = data_dir + '/' + fName
         print('  Working on {}'.format(fName))
@@ -70,6 +74,17 @@ def get_feature_by_subject(data_dir, W, b):
             data_time_space = eeg_subject_data
         else:
             data_time_space = eeg_subject_data
+
+        if normalization == 'normalize':
+            normalized_data = np.load('normalization.npz')
+            mean_val = normalized_data['mean_val']
+            std_val = normalized_data['std_val']
+            data_time_space = (data_time_space - mean_val) / std_val
+        elif normalization == 'scaling':
+            normalized_data = np.load('scaling.npz')
+            max_val = normalized_data['max_val']
+            min_val = normalized_data['min_val']
+            data_time_space = 2.0 * (data_time_space - min_val) / (max_val - min_val) - 1.0
 
         # iterate and multiply all of them
         if len(b) == 0:

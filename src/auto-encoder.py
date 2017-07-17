@@ -106,11 +106,12 @@ def main(_):
     global_step = tf.Variable(0, name="global_step", trainable=False)
 
     # OPTIMIZER
-    decay_rate = FLAGS.decay_rate
-    decay_step = FLAGS.decay_step
-    lr_rate = tf.train.exponential_decay(
-            FLAGS.learning_rate, global_step,
-            decay_step, decay_rate, staircase=True)
+    #decay_rate = FLAGS.decay_rate
+    #decay_step = FLAGS.decay_step
+    #lr_rate = tf.train.exponential_decay(
+    #        FLAGS.learning_rate, global_step,
+    #        decay_step, decay_rate, staircase=True)
+    lr_rate = FLAGS.learning_rate
     train_step = tf.train.AdamOptimizer(
                     learning_rate=lr_rate).\
                     minimize(loss, global_step=global_step) 
