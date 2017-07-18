@@ -1,7 +1,13 @@
 #!/bin/bash
 
 # freqSum_NoTiedWeight_Medium
-python src/load-plot.py --model='freqSum_NoTiedWeight_Medium' --model_name='2017-07-16-023015' --data_base_dir='/home/chuong/EEG-Project/processed_data' --output_base_dir='/home/chuong/EEG-Project/output_features'
+python src/load-plot.py --model='freqSum_NoTiedWeight_Big' --model_name='2017-07-17-194311' --data_base_dir='/home/chuong/EEG-Project/processed_data' --output_base_dir='/home/chuong/EEG-Project/output_features'
+
+# freqSum_NoTiedWeight_Medium
+#python src/load-plot.py --model='freqSum_NoTiedWeight_Medium' --model_name='2017-07-17-021238' --data_base_dir='/home/chuong/EEG-Project/processed_data' --output_base_dir='/home/chuong/EEG-Project/output_features'
+
+#python src/load-plot.py --model='freqSum_NoTiedWeight_Medium' --model_name='2017-07-16-023015' --data_base_dir='/home/chuong/EEG-Project/processed_data' --output_base_dir='/home/chuong/EEG-Project/output_features'
+
 
 # freqSum_NoTiedWeight_Small
 #python src/load-plot.py --model='freqSum_NoTiedWeight_Small' --model_name='2017-07-10-201227' --data_base_dir='/home/chuong/EEG-Project/processed_data' --output_base_dir='/home/chuong/EEG-Project/output_features'

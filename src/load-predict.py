@@ -76,11 +76,13 @@ def get_feature_by_subject(data_dir, W, b, normalization='normalize'):
             data_time_space = eeg_subject_data
 
         if normalization == 'normalize':
+            print("Normalizing data ...")
             normalized_data = np.load('normalization.npz')
             mean_val = normalized_data['mean_val']
             std_val = normalized_data['std_val']
             data_time_space = (data_time_space - mean_val) / std_val
         elif normalization == 'scaling':
+            print("Scaling data data ...")
             normalized_data = np.load('scaling.npz')
             max_val = normalized_data['max_val']
             min_val = normalized_data['min_val']
@@ -165,7 +167,7 @@ if model == "small" or model == "big" or model == 'freqSum_NoTiedWeight_Small':
     b.append(b1)
     b.append(b2)
     b.append(b3)
-elif model == "freqSumSmall" or model == "freqSumBig" or model == 'freqSum_TiedWeight_Big' or model == 'freqSum_TiedWeight' or model == 'freqSum_NoTiedWeight_Big' or model == 'freqSum_NoTiedWeight_Medium':
+elif model == "freqSumSmall" or model == "freqSumBig" or model == 'freqSum_TiedWeight_Big' or model == 'freqSum_TiedWeight' or model == 'freqSum_NoTiedWeight_Medium':
     # get variables using scope FC1
     W_fc1 = tf.get_collection(tf.GraphKeys.VARIABLES, scope='FC1')[0]
     b_fc1 = tf.get_collection(tf.GraphKeys.VARIABLES, scope='FC1')[1]
@@ -183,32 +185,62 @@ elif model == "freqSumSmall" or model == "freqSumBig" or model == 'freqSum_TiedW
     b_fc4 = tf.get_collection(tf.GraphKeys.VARIABLES, scope='FC4')[1]
     [w_fc1, b1, w_fc2, b2, w_fc3, b3, w_fc4, b4] = sess.run([W_fc1, b_fc1, W_fc2, b_fc2, W_fc3, b_fc3, W_fc4, b_fc4])
 
-
-    # get variables using scope FC5
-    #W_fc5 = tf.get_collection(tf.GraphKeys.VARIABLES, scope='FC5')[0]
-    #b_fc5 = tf.get_collection(tf.GraphKeys.VARIABLES, scope='FC5')[1]
-
-    # get variables using scope FC6
-    #W_fc6 = tf.get_collection(tf.GraphKeys.VARIABLES, scope='FC6')[0]
-    #b_fc6 = tf.get_collection(tf.GraphKeys.VARIABLES, scope='FC6')[1]
-
-    #[w_fc1, b1, w_fc2, b2, w_fc3, b3, w_fc4, b4, w_fc5, b5, w_fc6, b6] = sess.run([W_fc1, b_fc1, W_fc2, b_fc2, W_fc3, b_fc3, W_fc4, b_fc4, W_fc5, b_fc5, W_fc6, b_fc6])
-
     W = []
     W.append(w_fc1)
     W.append(w_fc2)
     W.append(w_fc3)
     W.append(w_fc4)
-    #W.append(w_fc5)
-    #W.append(w_fc6)
 
     b = []
     b.append(b1)
     b.append(b2)
     b.append(b3)
     b.append(b4)
-    #b.append(b5)
-    #b.append(b6)
+
+elif model == "freqSum_NoTiedWeight_Big":
+    print("Doing model %s " % (model))
+    # get variables using scope FC1
+    W_fc1 = tf.get_collection(tf.GraphKeys.VARIABLES, scope='FC1')[0]
+    b_fc1 = tf.get_collection(tf.GraphKeys.VARIABLES, scope='FC1')[1]
+
+    # get variables using scope FC2
+    W_fc2 = tf.get_collection(tf.GraphKeys.VARIABLES, scope='FC2')[0]
+    b_fc2 = tf.get_collection(tf.GraphKeys.VARIABLES, scope='FC2')[1]
+
+    # get variables using scope FC3
+    W_fc3 = tf.get_collection(tf.GraphKeys.VARIABLES, scope='FC3')[0]
+    b_fc3 = tf.get_collection(tf.GraphKeys.VARIABLES, scope='FC3')[1]
+
+    # get variables using scope FC4
+    W_fc4 = tf.get_collection(tf.GraphKeys.VARIABLES, scope='FC4')[0]
+    b_fc4 = tf.get_collection(tf.GraphKeys.VARIABLES, scope='FC4')[1]
+
+    # get variables using scope FC5
+    W_fc5 = tf.get_collection(tf.GraphKeys.VARIABLES, scope='FC5')[0]
+    b_fc5 = tf.get_collection(tf.GraphKeys.VARIABLES, scope='FC5')[1]
+
+    # get variables using scope FC6
+    W_fc6 = tf.get_collection(tf.GraphKeys.VARIABLES, scope='FC6')[0]
+    b_fc6 = tf.get_collection(tf.GraphKeys.VARIABLES, scope='FC6')[1]
+
+    [w_fc1, b1, w_fc2, b2, w_fc3, b3, w_fc4, b4, w_fc5, b5, w_fc6, b6] = sess.run([W_fc1, b_fc1, W_fc2, b_fc2, W_fc3, b_fc3, W_fc4, b_fc4, W_fc5, b_fc5, W_fc6, b_fc6])
+
+    W = []
+    W.append(w_fc1)
+    W.append(w_fc2)
+    W.append(w_fc3)
+    W.append(w_fc4)
+    W.append(w_fc5)
+    W.append(w_fc6)
+
+    b = []
+    b.append(b1)
+    b.append(b2)
+    b.append(b3)
+    b.append(b4)
+    b.append(b5)
+    b.append(b6)
+
 
 # close tensorflow session
 sess.close()
