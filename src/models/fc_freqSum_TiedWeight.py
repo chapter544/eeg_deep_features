@@ -17,7 +17,6 @@ import sys
 from datetime import datetime
 from tf_utils import weight_variable, bias_variable
 
-
 def build_fc_freqSum_TiedWeight_NoBias(x, x_dim, keep_prob, gamma=1e-7):
     # FC1
     with tf.name_scope("FC1"):
@@ -118,13 +117,14 @@ def build_fc_freqSum_TiedWeight_NoBias(x, x_dim, keep_prob, gamma=1e-7):
         #          tf.reduce_sum(tf.abs(W_fc5)) +  \
         #          tf.reduce_sum(tf.abs(W_fc6))
         #loss += gamma * l1_loss
-        if parse_version(tf.__version__.rpartition('.')[0]) >= parse_version('0.12.0'):
+        tf_version = tf.__version__.rpartition('.')[0]
+        if parse_version(tf_version) >= parse_version('0.12.0'):
             tf.summary.scalar("loss", loss)
         else:
             tf.scalar_summary("loss", loss)
 
         # summary
-        if parse_version(tf.__version__.rpartition('.')[0]) >= parse_version('0.12.0'):
+        if parse_version(tf_version) >= parse_version('0.12.0'):
             summary_op = tf.summary.merge_all()
         else:
             summary_op = tf.merge_all_summaries()
@@ -250,13 +250,13 @@ def build_fc_freqSum_TiedWeight_Big2(x, x_dim, keep_prob, gamma=1e-7):
         #          tf.reduce_sum(tf.abs(W_fc5)) +  \
         #          tf.reduce_sum(tf.abs(W_fc6))
         ##loss += gamma * l1_loss
-        if parse_version(tf.__version__.rpartition('.')[0]) >= parse_version('0.12.0'):
+        if parse_version(tf_version) >= parse_version('0.12.0'):
             tf.summary.scalar("loss", loss)
         else:
             tf.scalar_summary("loss", loss)
 
         # summary
-        if parse_version(tf.__version__.rpartition('.')[0]) >= parse_version('0.12.0'):
+        if parse_version(tf_version) >= parse_version('0.12.0'):
             summary_op = tf.summary.merge_all()
         else:
             summary_op = tf.merge_all_summaries()
@@ -302,7 +302,8 @@ def build_fc_freqSum_NoTiedWeight_Medium(x, x_dim, keep_prob, gamma=1e-7):
         fc4_dim = 64
         W_fc4 = weight_variable([fc3_dim, fc4_dim])
         b_fc4 = weight_variable([fc4_dim])
-        h_fc4 = tf.nn.relu(tf.matmul(h_fc3, W_fc4) + b_fc4)
+        #h_fc4 = tf.nn.relu(tf.matmul(h_fc3, W_fc4) + b_fc4)
+        h_fc4 = tf.nn.softmax(tf.matmul(h_fc3, W_fc4) + b_fc4)
 
     # FC5
     with tf.name_scope("FC5"):
@@ -398,16 +399,18 @@ def build_fc_freqSum_NoTiedWeight_Medium(x, x_dim, keep_prob, gamma=1e-7):
         l1_loss = l1_loss_sum * gamma
         #loss += l1_loss
 
-        if parse_version(tf.__version__.rpartition('.')[0]) >= parse_version('0.12.0'):
+        tf_version = tf.__version__.rpartition('.')[0]
+        if parse_version(tf_version) >= parse_version('0.12.0'):
             tf.summary.scalar("loss", loss)
         else:
             tf.scalar_summary("loss", loss)
 
         # summary
-        if parse_version(tf.__version__.rpartition('.')[0]) >= parse_version('0.12.0'):
+        if parse_version(tf_version) >= parse_version('0.12.0'):
             summary_op = tf.summary.merge_all()
         else:
             summary_op = tf.merge_all_summaries()
+
     return loss, y, entropy_loss
 
 
@@ -531,16 +534,18 @@ def build_fc_freqSum_NoTiedWeight_Small(x, x_dim, keep_prob, gamma=1e-7):
         l1_loss = l1_loss_sum * gamma
         #loss += l1_loss
 
-        if parse_version(tf.__version__.rpartition('.')[0]) >= parse_version('0.12.0'):
+        tf_version = tf.__version__.rpartition('.')[0]
+        if parse_version(tf_version) >= parse_version('0.12.0'):
             tf.summary.scalar("loss", loss)
         else:
             tf.scalar_summary("loss", loss)
 
         # summary
-        if parse_version(tf.__version__.rpartition('.')[0]) >= parse_version('0.12.0'):
+        if parse_version(tf_version) >= parse_version('0.12.0'):
             summary_op = tf.summary.merge_all()
         else:
             summary_op = tf.merge_all_summaries()
+
     return loss, y, entropy_loss
 
 
@@ -612,7 +617,8 @@ def build_fc_freqSum_NoTiedWeight_Big(x, x_dim, keep_prob, gamma=1e-7):
         W_fc6 = weight_variable([fc5_dim, fc6_dim])
         #W_fc6 = tf.transpose(W_fc3)
         b_fc6 = weight_variable([fc6_dim])
-        h_fc6 = tf.nn.relu(tf.matmul(h_fc5, W_fc6) + b_fc6)
+        #h_fc6 = tf.nn.relu(tf.matmul(h_fc5, W_fc6) + b_fc6)
+        h_fc6 = tf.nn.softmax(tf.matmul(h_fc5, W_fc6) + b_fc6)
 
     # dropout
     #with tf.name_scope("Dropout6"):
@@ -703,18 +709,60 @@ def build_fc_freqSum_NoTiedWeight_Big(x, x_dim, keep_prob, gamma=1e-7):
                   tf.reduce_sum(tf.abs(W_fc5)) +  \
                   tf.reduce_sum(tf.abs(W_fc6))
         loss += gamma * l1_loss
-        if parse_version(tf.__version__.rpartition('.')[0]) >= parse_version('0.12.0'):
+        tf_version = tf.__version__.rpartition('.')[0]
+        if parse_version(tf_version) >= parse_version('0.12.0'):
             tf.summary.scalar("loss", loss)
         else:
             tf.scalar_summary("loss", loss)
 
         # summary
-        if parse_version(tf.__version__.rpartition('.')[0]) >= parse_version('0.12.0'):
+        if parse_version(tf_version) >= parse_version('0.12.0'):
             summary_op = tf.summary.merge_all()
         else:
             summary_op = tf.merge_all_summaries()
     return loss, y, gamma * l1_loss
 
+
+def build_fc_freqSum_NoTiedWeight_Tiny(x, x_dim, keep_prob, gamma=1e-7):
+    # FC1
+    with tf.name_scope("FC1"):
+        fc1_dim = 64
+        W_fc1 = weight_variable([x_dim, fc1_dim])
+        b_fc1 = weight_variable([fc1_dim])
+        h_fc1 = tf.nn.relu(tf.matmul(x, W_fc1) + b_fc1)
+
+    #with tf.name_scope("Dropout1"):
+    #    h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
+
+
+    # FC2
+    with tf.name_scope("FC2"):
+        fc2_dim = x_dim
+        W_fc2 = weight_variable([fc1_dim, fc2_dim])
+        b_fc2 = weight_variable([fc2_dim])
+        y = tf.matmul(h_fc1, W_fc2) + b_fc2
+
+    # LOSS 
+    with tf.name_scope("loss"):
+        l2_loss = tf.sqrt(tf.reduce_mean(tf.square(y-x)))
+        loss = l2_loss
+
+        l1_loss = tf.reduce_sum(tf.abs(W_fc1)) + \
+                  tf.reduce_sum(tf.abs(W_fc2)) 
+        loss += gamma * l1_loss
+
+        tf_version = tf.__version__.rpartition('.')[0]
+        if parse_version(tf_version) >= parse_version('0.12.0'):
+            tf.summary.scalar("loss", loss)
+        else:
+            tf.scalar_summary("loss", loss)
+
+        # summary
+        if parse_version(tf_version) >= parse_version('0.12.0'):
+            summary_op = tf.summary.merge_all()
+        else:
+            summary_op = tf.merge_all_summaries()
+    return loss, y, gamma * l1_loss
 
 
 
@@ -761,7 +809,7 @@ def build_fc_freqSum_TiedWeight_Big(x, x_dim, keep_prob, gamma=1e-7):
         fc4_dim = 512
         W_fc4 = weight_variable([fc3_dim, fc4_dim])
         b_fc4 = weight_variable([fc4_dim])
-        h_fc4 = tf.nn.sigmoid(tf.matmul(h_fc3, W_fc4) + b_fc4)
+        h_fc4 = tf.nn.relu(tf.matmul(h_fc3, W_fc4) + b_fc4)
 
     # dropout
     #with tf.name_scope("Dropout4"):
@@ -860,13 +908,14 @@ def build_fc_freqSum_TiedWeight_Big(x, x_dim, keep_prob, gamma=1e-7):
                   tf.reduce_sum(tf.abs(W_fc5)) +  \
                   tf.reduce_sum(tf.abs(W_fc6))
         loss += gamma * l1_loss
-        if parse_version(tf.__version__.rpartition('.')[0]) >= parse_version('0.12.0'):
+        tf_version = tf.__version__.rpartition('.')[0]
+        if parse_version(tf_version) >= parse_version('0.12.0'):
             tf.summary.scalar("loss", loss)
         else:
             tf.scalar_summary("loss", loss)
 
         # summary
-        if parse_version(tf.__version__.rpartition('.')[0]) >= parse_version('0.12.0'):
+        if parse_version(tf_version) >= parse_version('0.12.0'):
             summary_op = tf.summary.merge_all()
         else:
             summary_op = tf.merge_all_summaries()
@@ -1007,13 +1056,14 @@ def build_fc_freqSum_TiedWeight(x, x_dim, keep_prob, gamma=1e-7):
                   tf.reduce_sum(tf.abs(W_fc5)) +  \
                   tf.reduce_sum(tf.abs(W_fc6))
         #loss += gamma * l1_loss
-        if parse_version(tf.__version__.rpartition('.')[0]) >= parse_version('0.12.0'):
+        tf_version = tf.__version__.rpartition('.')[0]
+        if parse_version(tf_version) >= parse_version('0.12.0'):
             tf.summary.scalar("loss", loss)
         else:
             tf.scalar_summary("loss", loss)
 
         # summary
-        if parse_version(tf.__version__.rpartition('.')[0]) >= parse_version('0.12.0'):
+        if parse_version(tf_version) >= parse_version('0.12.0'):
             summary_op = tf.summary.merge_all()
         else:
             summary_op = tf.merge_all_summaries()
@@ -1157,16 +1207,18 @@ def build_fc_freqSum_TiedWeight_NoDropout(x, x_dim, keep_prob, gamma=1e-7):
                   tf.reduce_sum(tf.abs(W_fc5)) +  \
                   tf.reduce_sum(tf.abs(W_fc6))
         #loss += gamma * l1_loss
-        if parse_version(tf.__version__.rpartition('.')[0]) >= parse_version('0.12.0'):
+        tf_version = tf.__version__.rpartition('.')[0]
+        if parse_version(tf_version) >= parse_version('0.12.0'):
             tf.summary.scalar("loss", loss)
         else:
             tf.scalar_summary("loss", loss)
 
         # summary
-        if parse_version(tf.__version__.rpartition('.')[0]) >= parse_version('0.12.0'):
+        if parse_version(tf_version) >= parse_version('0.12.0'):
             summary_op = tf.summary.merge_all()
         else:
             summary_op = tf.merge_all_summaries()
+
     return loss, y, gamma * l1_loss
 
 
@@ -1289,13 +1341,15 @@ def build_fc_freqSum(x, x_dim, keep_prob, gamma=0.00001):
     with tf.name_scope("loss"):
         #loss = tf.reduce_mean(tf.squared_difference(y, x))
         loss = tf.sqrt(tf.reduce_mean(tf.square(y-x)))
-        if parse_version(tf.__version__.rpartition('.')[0]) >= parse_version('0.12.0'):
+
+        tf_version = tf.__version__.rpartition('.')[0]
+        if parse_version(tf_version) >= parse_version('0.12.0'):
             tf.summary.scalar("loss", loss)
         else:
-            scalar_summary("loss", loss)
+            tf.scalar_summary("loss", loss)
 
         # summary
-        if parse_version(tf.__version__.rpartition('.')[0]) >= parse_version('0.12.0'):
+        if parse_version(tf_version) >= parse_version('0.12.0'):
             summary_op = tf.summary.merge_all()
         else:
             summary_op = tf.merge_all_summaries()
@@ -1418,16 +1472,18 @@ def build_fc_freqSum_L1(x, x_dim, keep_prob, gamma=0.00001):
                   tf.reduce_sum(tf.abs(W_fc11)) + \
                   tf.reduce_sum(tf.abs(W_fc12)) 
         loss += gamma * l1_loss
-        if parse_version(tf.__version__.rpartition('.')[0]) >= parse_version('0.12.0'):
+
+        tf_version = tf.__version__.rpartition('.')[0]
+        if parse_version(tf_version) >= parse_version('0.12.0'):
             tf.summary.scalar("loss", loss)
         else:
             tf.scalar_summary("loss", loss)
-           
 
         # summary
-        if parse_version(tf.__version__.rpartition('.')[0]) >= parse_version('0.12.0'):
-            summary_op = tf.merge_all_summaries()
-        else:
+        if parse_version(tf_version) >= parse_version('0.12.0'):
             summary_op = tf.summary.merge_all()
+        else:
+            summary_op = tf.merge_all_summaries()
+
 
     return loss, y

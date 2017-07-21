@@ -16,29 +16,18 @@ from datetime import datetime
 from pkg_resources import parse_version
 from eeg_input_data import eeg_data
 from utils import get_input_data_path, get_data_path_with_timestamp
-from models.fc_freqSum_TiedWeight import build_fc_freqSum_TiedWeight, build_fc_freqSum_TiedWeight_NoBias
-from models.fc_freqSum_TiedWeight import build_fc_freqSum_TiedWeight_NoDropout, build_fc_freqSum
+from models.fc_freqSum_TiedWeight import build_fc_freqSum_TiedWeight
+from models.fc_freqSum_TiedWeight import build_fc_freqSum_TiedWeight_NoBias
+from models.fc_freqSum_TiedWeight import build_fc_freqSum_TiedWeight_NoDropout
+from models.fc_freqSum_TiedWeight import build_fc_freqSum
 from models.fc_freqSum_TiedWeight import build_fc_freqSum_TiedWeight_Big
 from models.fc_freqSum_TiedWeight import build_fc_freqSum_NoTiedWeight_Big
 from models.fc_freqSum_TiedWeight import build_fc_freqSum_NoTiedWeight_Small
 from models.fc_freqSum_TiedWeight import build_fc_freqSum_NoTiedWeight_Medium
+from models.fc_freqSum_TiedWeight import build_fc_freqSum_NoTiedWeight_Tiny
 import models
 
 FLAGS = None
-
-#def weight_variable(shape):
-#    initial = tf.truncated_normal(shape, stddev=0.1)
-#    return tf.Variable(initial)
-
-#def bias_variable(shape):
-#    initial = tf.constant(0.1, shape=shape)
-#    return tf.Variable(initial)
-
-#def conv2d(x, W, strides=strides, padding=padding):
-#    return tf.nn.conv2d(x, W, strides=strides, padding=padding)
-
-#def max_pool(x, ksize=ksize, strides=strides, padding=padding):
-#    return tf.nn.max_pool(x, ksize, strides, padding=padding)
 
 
 def main(_):
@@ -50,9 +39,12 @@ def main(_):
     if FLAGS.data_type == 'subsample': # subsample on 3D axes
         eeg.get_data(sub_volumes_dir, fake=FLAGS.test)
     else: # no subsampling
-        eeg.get_data(sub_volumes_dir, num_data_sec=-1,  fake=FLAGS.test, normalization=FLAGS.data_normalization)
-    data = eeg.images
-    x_dim = data.shape[1]
+        eeg.get_data(sub_volumes_dir, num_data_sec=-1, 
+                fake=FLAGS.test, normalization=FLAGS.data_normalization)
+
+    X = eeg.data
+    print('{} x {}'.format(X.shape[0], X.shape[1]))
+    x_dim = X.shape[1]
 
     # reset everything
     tf.reset_default_graph()
@@ -67,7 +59,8 @@ def main(_):
     # BUILD MODEL
     # L1 regularization gamma
     gamma = FLAGS.gamma
-    model_path = get_data_path_with_timestamp(FLAGS.model, FLAGS.trained_model_base_dir)
+    model_path = get_data_path_with_timestamp(
+            FLAGS.model, FLAGS.trained_model_base_dir)
     if FLAGS.model == 'big':
         print("Doing big model ...")
         loss, decoded = build_fc_big_freqFlatten(x, x_dim, dropout_keep_prob)
@@ -85,6 +78,9 @@ def main(_):
                x, x_dim, dropout_keep_prob)
     elif FLAGS.model == 'freqSum_NoTiedWeight_Big':
         loss, decoded, l1_loss = build_fc_freqSum_NoTiedWeight_Big(
+               x, x_dim, dropout_keep_prob)
+    elif FLAGS.model == 'freqSum_NoTiedWeight_Tiny':
+        loss, decoded, l1_loss = build_fc_freqSum_NoTiedWeight_Tiny(
                x, x_dim, dropout_keep_prob)
     elif FLAGS.model == 'freqSum_NoTiedWeight_Small':
         loss, decoded, l1_loss = build_fc_freqSum_NoTiedWeight_Small(
@@ -141,25 +137,28 @@ def main(_):
     training_epoches = FLAGS.num_epochs
     batch_size = FLAGS.batch_size
     display_step = 20
-    total_batches = data.shape[0] // batch_size
+    total_batches = X.shape[0] // batch_size
     num_epochs_save = FLAGS.num_epochs_save
 
     # saver to save and restore all variables
     saver = tf.train.Saver()
 
     # summary
-    if parse_version(tf.__version__.rpartition('.')[0]) >= parse_version('0.12.0'):
+    tf_version = tf.__version__.rpartition('.')[0]
+    if parse_version(tf_version) >= parse_version('0.12.0'):
         summary_op = tf.summary.merge_all()
     else:
         summary_op = tf.merge_all_summaries()
 
     with tf.Session() as sess:
-        if parse_version(tf.__version__.rpartition('.')[0]) >= parse_version('0.12.0'):
+        if parse_version(tf_version) >= parse_version('0.12.0'):
             sess.run(tf.global_variables_initializer())
-            writer = tf.summary.FileWriter(logs_path, graph=tf.get_default_graph())
+            writer = tf.summary.FileWriter(logs_path, 
+                        graph=tf.get_default_graph())
         else:
             sess.run(tf.initialize_all_variables())
-            writer = tf.train.SummaryWriter(logs_path, graph=tf.get_default_graph())
+            writer = tf.train.SummaryWriter(logs_path, 
+                        graph=tf.get_default_graph())
         for epoch in range(training_epoches):
             avg_cost = 0.
             batch_idx = 0
@@ -167,7 +166,9 @@ def main(_):
                 batch_idx += 1
                 batch_xs = batch
                 feeds = {x: batch_xs, dropout_keep_prob: 0.5}
-                _, step, summary = sess.run([train_step, global_step, summary_op], feed_dict=feeds)
+                _, step, summary = sess.run(
+                        [train_step, global_step, summary_op],
+                        feed_dict=feeds)
 
                 # write log
                 writer.add_summary(summary, step)
@@ -177,17 +178,21 @@ def main(_):
                 if batch_idx % display_step == 0:
                     print('  step %6d, loss = %6.5f' % (batch_idx, train_loss))
 
-            eval_loss = loss.eval({x: eeg._test, dropout_keep_prob: 1.0})
-            l1_loss_network = l1_loss.eval({x: eeg._test, dropout_keep_prob: 1.0})
+            eval_loss = loss.eval({x: eeg._validation, dropout_keep_prob: 1.0})
+            l1_loss_network = l1_loss.eval(
+                    {x: eeg._validation, dropout_keep_prob: 1.0})
             current_step = tf.train.global_step(sess, global_step)
             avg_epoch_loss = avg_cost / total_batches
-            print('Epoch %6d, step %6d, l1_loss= %6.5f, agv_loss= %6.5f, eval_los= %6.5f' % (epoch, current_step, l1_loss_network, avg_epoch_loss, eval_loss))
+            print('Epoch {:6d}, step {:6d}, l1_loss= {:6.5f}, agv_loss= {:6.5f}, eval_los= %6.5f'.format(epoch, current_step, l1_loss_network, avg_epoch_loss, eval_loss))
 
             if (epoch+1) % num_epochs_save == 0:
-                model_file_fullpath = model_file_prefix + str(epoch+1) + '_' + datetime.now().strftime('%Y-%m-%d-%H%M%S') + '.ckpt'
+                model_file_fullpath = model_file_prefix + str(epoch+1) + '_' + \
+                    datetime.now().strftime('%Y-%m-%d-%H%M%S') + '.ckpt'
                 # retrieve the current global_step
                 #current_step = tf.train.global_step(sess, global_step)
-                save_path = saver.save(sess, model_file_fullpath, global_step=current_step)
+                save_path = saver.save(
+                                sess, model_file_fullpath, 
+                                global_step=current_step)
                 print("Model saved in file: %s" % save_path)
 
 
