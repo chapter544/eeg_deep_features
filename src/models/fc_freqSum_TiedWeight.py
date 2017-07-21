@@ -264,7 +264,8 @@ def build_fc_freqSum_TiedWeight_Big2(x, x_dim, keep_prob, gamma=1e-7):
     return loss, y, tf.constant(0) 
 
 
-def build_fc_freqSum_NoTiedWeight_Medium(x, x_dim, keep_prob, gamma=1e-7):
+def build_fc_freqSum_NoTiedWeight_Medium(x, x_dim, keep_prob, gamma=1e-7,
+        activation='relu'):
     # FC1
     with tf.name_scope("FC1"):
         fc1_dim = 4096
@@ -302,8 +303,10 @@ def build_fc_freqSum_NoTiedWeight_Medium(x, x_dim, keep_prob, gamma=1e-7):
         fc4_dim = 64
         W_fc4 = weight_variable([fc3_dim, fc4_dim])
         b_fc4 = weight_variable([fc4_dim])
-        #h_fc4 = tf.nn.relu(tf.matmul(h_fc3, W_fc4) + b_fc4)
-        h_fc4 = tf.nn.softmax(tf.matmul(h_fc3, W_fc4) + b_fc4)
+        if activation == 'softmax':
+            h_fc4 = tf.nn.softmax(tf.matmul(h_fc3, W_fc4) + b_fc4)
+        else:
+            h_fc4 = tf.nn.relu(tf.matmul(h_fc3, W_fc4) + b_fc4)
 
     # FC5
     with tf.name_scope("FC5"):
@@ -551,7 +554,8 @@ def build_fc_freqSum_NoTiedWeight_Small(x, x_dim, keep_prob, gamma=1e-7):
 
 
 
-def build_fc_freqSum_NoTiedWeight_Big(x, x_dim, keep_prob, gamma=1e-7):
+def build_fc_freqSum_NoTiedWeight_Big(x, x_dim, keep_prob, gamma=1e-7,
+        activation='relu'):
     # FC1
     with tf.name_scope("FC1"):
         #fc1_dim = 8192
@@ -617,8 +621,10 @@ def build_fc_freqSum_NoTiedWeight_Big(x, x_dim, keep_prob, gamma=1e-7):
         W_fc6 = weight_variable([fc5_dim, fc6_dim])
         #W_fc6 = tf.transpose(W_fc3)
         b_fc6 = weight_variable([fc6_dim])
-        #h_fc6 = tf.nn.relu(tf.matmul(h_fc5, W_fc6) + b_fc6)
-        h_fc6 = tf.nn.softmax(tf.matmul(h_fc5, W_fc6) + b_fc6)
+        if activation == 'softmax':
+            h_fc6 = tf.nn.softmax(tf.matmul(h_fc5, W_fc6) + b_fc6)
+        else:
+            h_fc6 = tf.nn.relu(tf.matmul(h_fc5, W_fc6) + b_fc6)
 
     # dropout
     #with tf.name_scope("Dropout6"):
@@ -766,7 +772,8 @@ def build_fc_freqSum_NoTiedWeight_Tiny(x, x_dim, keep_prob, gamma=1e-7):
 
 
 
-def build_fc_freqSum_TiedWeight_Big(x, x_dim, keep_prob, gamma=1e-7):
+def build_fc_freqSum_TiedWeight_Big(x, x_dim, keep_prob, gamma=1e-7,
+        activation='relu'):
     # FC1
     with tf.name_scope("FC1"):
         #fc1_dim = 8192
@@ -832,7 +839,10 @@ def build_fc_freqSum_TiedWeight_Big(x, x_dim, keep_prob, gamma=1e-7):
         W_fc6 = weight_variable([fc5_dim, fc6_dim])
         #W_fc6 = tf.transpose(W_fc4)
         b_fc6 = weight_variable([fc6_dim])
-        h_fc6 = tf.nn.relu(tf.matmul(h_fc5, W_fc6) + b_fc6)
+        if activation == 'softmax':
+            h_fc6 = tf.nn.softmax(tf.matmul(h_fc5, W_fc6) + b_fc6)
+        else:
+            h_fc6 = tf.nn.relu(tf.matmul(h_fc5, W_fc6) + b_fc6)
 
     # dropout
     #with tf.name_scope("Dropout6"):

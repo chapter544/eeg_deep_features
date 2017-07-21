@@ -59,8 +59,8 @@ def main(_):
     # BUILD MODEL
     # L1 regularization gamma
     gamma = FLAGS.gamma
-    model_path = get_data_path_with_timestamp(
-            FLAGS.model, FLAGS.trained_model_base_dir)
+    feature_activation = FLAGS.feature_activation
+
     if FLAGS.model == 'big':
         print("Doing big model ...")
         loss, decoded = build_fc_big_freqFlatten(x, x_dim, dropout_keep_prob)
@@ -69,34 +69,45 @@ def main(_):
         loss, decoded = build_fc_freqFlatten_L1(x, x_dim, dropout_keep_prob)
     elif FLAGS.model == 'freqSum_TiedWeight_NoBias':
         loss, decoded, l1_loss = build_fc_freqSum_TiedWeight_NoBias(
-                x, x_dim, dropout_keep_prob)
+                x, x_dim, dropout_keep_prob, gamma)
     elif FLAGS.model == 'freqSum_TiedWeight':
         loss, decoded, l1_loss = build_fc_freqSum_TiedWeight(
-               x, x_dim, dropout_keep_prob)
+               x, x_dim, dropout_keep_prob, gamma)
     elif FLAGS.model == 'freqSum_TiedWeight_Big':
         loss, decoded, l1_loss = build_fc_freqSum_TiedWeight_Big(
-               x, x_dim, dropout_keep_prob)
+               x, x_dim, dropout_keep_prob,
+               gamma=gamma, activation=feature_activation)
     elif FLAGS.model == 'freqSum_NoTiedWeight_Big':
         loss, decoded, l1_loss = build_fc_freqSum_NoTiedWeight_Big(
-               x, x_dim, dropout_keep_prob)
+               x, x_dim, dropout_keep_prob,
+               gamma=gamma, activation=feature_activation)
     elif FLAGS.model == 'freqSum_NoTiedWeight_Tiny':
         loss, decoded, l1_loss = build_fc_freqSum_NoTiedWeight_Tiny(
-               x, x_dim, dropout_keep_prob)
+               x, x_dim, dropout_keep_prob, 
+               gamma=gamma, activation=feature_activation)
     elif FLAGS.model == 'freqSum_NoTiedWeight_Small':
         loss, decoded, l1_loss = build_fc_freqSum_NoTiedWeight_Small(
-               x, x_dim, dropout_keep_prob)
+               x, x_dim, dropout_keep_prob, 
+               gamma=gamma, activation=feature_activation)
     elif FLAGS.model == 'freqSum_NoTiedWeight_Medium':
         loss, decoded, l1_loss = build_fc_freqSum_NoTiedWeight_Medium(
-               x, x_dim, dropout_keep_prob)
+               x, x_dim, dropout_keep_prob, 
+               gamma=gamma, activation=feature_activation)
     else:
         print("Doing small L1 model ...")
         loss, decoded = build_fc_freqSum_L1(x, x_dim, dropout_keep_prob, gamma)
 
+    # create model directory to write outputs
+    model_path = get_data_path_with_timestamp(
+            FLAGS.model, FLAGS.trained_model_base_dir)
+    model_path += '-' + feature_activation
+    if not os.path.exists(model_path):
+        os.makedirs(model_path)
+
+    # write model logs for tensorboard
     logs_path = '/tmp/eeg/logs/' +  FLAGS.model
     model_file_prefix = model_path + '/' + FLAGS.model + '_epoch_'
 
-    if not os.path.exists(model_path):
-        os.makedirs(model_path)
 
 
     global_step = tf.Variable(0, name="global_step", trainable=False)
@@ -183,7 +194,7 @@ def main(_):
                     {x: eeg._validation, dropout_keep_prob: 1.0})
             current_step = tf.train.global_step(sess, global_step)
             avg_epoch_loss = avg_cost / total_batches
-            print('Epoch {:6d}, step {:6d}, l1_loss= {:6.5f}, agv_loss= {:6.5f}, eval_los= %6.5f'.format(epoch, current_step, l1_loss_network, avg_epoch_loss, eval_loss))
+            print('Epoch {:6d}, step {:6d}, l1_loss= {:6.5f}, agv_loss= {:6.5f}, eval_los= {:6.5f}'.format(epoch, current_step, l1_loss_network, avg_epoch_loss, eval_loss))
 
             if (epoch+1) % num_epochs_save == 0:
                 model_file_fullpath = model_file_prefix + str(epoch+1) + '_' + \
@@ -207,6 +218,8 @@ if __name__ == '__main__':
         help='Output directory')
     parser.add_argument('--model', type=str, 
         default='big', help='Model size: big, small')
+    parser.add_argument('--feature_activation', type=str, 
+            default='relu', help='Activation function: relu, softmax')
     parser.add_argument('--data_type', type=str, 
         default='subsample', help='Subsampling (subsample, freqSum)')
     parser.add_argument('--num_epochs', type=int, default=50, 
