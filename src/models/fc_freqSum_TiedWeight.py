@@ -305,6 +305,8 @@ def build_fc_freqSum_NoTiedWeight_Medium(x, x_dim, keep_prob, gamma=1e-7,
         b_fc4 = weight_variable([fc4_dim])
         if activation == 'softmax':
             h_fc4 = tf.nn.softmax(tf.matmul(h_fc3, W_fc4) + b_fc4)
+        elif activation == 'linear':
+            h_fc4 = tf.matmul(h_fc3, W_fc4) + b_fc4
         else:
             h_fc4 = tf.nn.relu(tf.matmul(h_fc3, W_fc4) + b_fc4)
 
@@ -395,12 +397,14 @@ def build_fc_freqSum_NoTiedWeight_Medium(x, x_dim, keep_prob, gamma=1e-7,
 
         l1_loss_sum = tf.reduce_sum(tf.abs(W_fc1)) + \
                       tf.reduce_sum(tf.abs(W_fc2)) + \
-                      tf.reduce_sum(tf.abs(W_fc3)) 
-                  #tf.reduce_sum(tf.abs(W_fc4))
-        #          tf.reduce_sum(tf.abs(W_fc5)) +  \
-        #          tf.reduce_sum(tf.abs(W_fc6))
+                      tf.reduce_sum(tf.abs(W_fc3))  + \
+                      tf.reduce_sum(tf.abs(W_fc4)) + \
+                      tf.reduce_sum(tf.abs(W_fc5)) +  \
+                      tf.reduce_sum(tf.abs(W_fc6)) + \
+                      tf.reduce_sum(tf.abs(W_fc7)) +  \
+                      tf.reduce_sum(tf.abs(W_fc8))
         l1_loss = l1_loss_sum * gamma
-        #loss += l1_loss
+        loss += l1_loss
 
         tf_version = tf.__version__.rpartition('.')[0]
         if parse_version(tf_version) >= parse_version('0.12.0'):
@@ -414,7 +418,7 @@ def build_fc_freqSum_NoTiedWeight_Medium(x, x_dim, keep_prob, gamma=1e-7,
         else:
             summary_op = tf.merge_all_summaries()
 
-    return loss, y, entropy_loss
+    return loss, y,  l1_loss
 
 
 
@@ -623,6 +627,8 @@ def build_fc_freqSum_NoTiedWeight_Big(x, x_dim, keep_prob, gamma=1e-7,
         b_fc6 = weight_variable([fc6_dim])
         if activation == 'softmax':
             h_fc6 = tf.nn.softmax(tf.matmul(h_fc5, W_fc6) + b_fc6)
+        elif activation == 'linear':
+            h_fc6 = tf.matmul(h_fc5, W_fc6) + b_fc6
         else:
             h_fc6 = tf.nn.relu(tf.matmul(h_fc5, W_fc6) + b_fc6)
 

@@ -39,23 +39,23 @@ feature_fullpath = FLAGS.output_base_dir + '/' + FLAGS.model + '-' + FLAGS.model
 
 os.chdir(feature_fullpath)
 
-no_bias_dir = 'feature_no_bias'
-if not os.path.exists(no_bias_dir):
-	os.makedirs(no_bias_dir)
+#no_bias_dir = 'feature_no_bias'
+#if not os.path.exists(no_bias_dir):
+#	os.makedirs(no_bias_dir)
 
 # no-bias load
-no_bias_pkl = feature_fullpath + '/' + 'volumes_time_feature_no_bias.pkl' 
-with open(no_bias_pkl, 'rb') as out_file: 
-    data_no_bias = pickle.load(out_file) 
+#no_bias_pkl = feature_fullpath + '/' + 'volumes_time_feature_no_bias.pkl' 
+#with open(no_bias_pkl, 'rb') as out_file: 
+#    data_no_bias = pickle.load(out_file) 
 
-print("Plotting and saving no-bias images")
-# no-bias plot
-for key, value in data_no_bias.iteritems(): 
-    plt.imshow(value, aspect='auto') 
-    plt.colorbar() 
-    plt.tight_layout() 
-    plt.savefig(no_bias_dir + '/' + key + '.png') 
-    plt.close()
+#print("Plotting and saving no-bias images")
+## no-bias plot
+#for key, value in data_no_bias.iteritems(): 
+#    plt.imshow(value, aspect='auto') 
+#    plt.colorbar() 
+#    plt.tight_layout() 
+#    plt.savefig(no_bias_dir + '/' + key + '.png') 
+#    plt.close()
 
 with_bias_dir = 'feature_with_bias'
 if not os.path.exists(with_bias_dir):

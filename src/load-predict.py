@@ -23,6 +23,9 @@ parser.add_argument('--trained_model_name', type=str,
 parser.add_argument('--data_normalization', type=str, 
         default='normalize', 
         help='Type of data normalization (normalize, scaling)')
+parser.add_argument('--feature_activation', type=str, 
+        default='linear', 
+        help='Activation function for the feature layer(linear, relu)')
 parser.add_argument('--data_base_dir', type=str, 
         default='/home/chuong/EEG-Project/processed_data', 
         help='Data base directory')
@@ -44,6 +47,8 @@ if FLAGS.output_base_dir == '':
 # sub_volumes directory, 
 sub_volumes_dir = get_input_data_path(FLAGS.model, FLAGS.data_base_dir)
 
+# feature activation (linear, relu)
+feature_activation = FLAGS.feature_activation
 
 # DEFINE model to compute
 model_name = FLAGS.model
@@ -58,7 +63,8 @@ def read_hdf5(fName):
     return data
 
 
-def get_feature_by_subject(data_dir, W, b, normalization='normalize'):
+def get_feature_by_subject(data_dir, W, b, 
+                           normalization='normalize', activation='relu'):
     data = dict()
     os.chdir(data_dir)
 
@@ -86,19 +92,35 @@ def get_feature_by_subject(data_dir, W, b, normalization='normalize'):
             normalized_data = np.load('scaling.npz')
             max_val = normalized_data['max_val']
             min_val = normalized_data['min_val']
-            data_time_space = 2.0 * (data_time_space - min_val) / (max_val - min_val) - 1.0
+            data_time_space = (2.0 * (data_time_space - min_val) / 
+                              (max_val - min_val)) - 1.0
 
         # iterate and multiply all of them
         if len(b) == 0:
             data_time_feature = data_time_space.dot(W[0])
-            for i in range(1, len(W)):
+            for i in range(1, len(W)-1):
                 data_time_feature = data_time_feature.dot(W[i])
+
+            last_layer_idx = len(W)-1
+            temp_data = data_time_feature.dot(W[last_layer_idx])
+            if feature_activation == 'linear':
+                data_time_feature = temp_data 
+            else:
+                data_time_feature = np.maximum(temp_data, 0, temp_data)
         elif len(b) == len(W):
             temp_data = data_time_space.dot(W[0]) + b[0]
             data_time_feature = np.maximum(temp_data, 0, temp_data)
-            for i in range(1, len(W)):
+            for i in range(1, len(W)-1):
                 temp_data = data_time_feature.dot(W[i]) + b[i]
                 data_time_feature = np.maximum(temp_data, 0, temp_data)
+            last_layer_idx = len(W)-1
+            temp_data = data_time_feature.dot(W[last_layer_idx]) + \
+                        b[last_layer_idx]
+            if feature_activation == 'linear':
+                data_time_feature = temp_data 
+            else:
+                data_time_feature = np.maximum(temp_data, 0, temp_data)
+
 
         #data_time_feature_2 = data_time_feature_1.dot(W['w2']) + b['b2']
         #data_time_feature_3 = data_time_feature_2.dot(W['w3']) + b['b3']
@@ -250,13 +272,13 @@ print("Obtaining transformation matrix W, and closing model ...")
 # for now, it's either using num_data_sec 
 # or we can compute the whole volume
 # construct the transformation matrix
-data_no_bias = get_feature_by_subject(sub_volumes_dir, W, [])
+#data_no_bias = get_feature_by_subject(sub_volumes_dir, W, [])
 
-dump_file_no_bias = output_dir + '/' + 'volumes_time_feature_no_bias.pkl'
-with open(dump_file_no_bias, 'wb') as output:
-    pickle.dump(data_no_bias, output)
-    pickle.dump(W, output)
-
+#dump_file_no_bias = output_dir + '/' + 'volumes_time_feature_no_bias.pkl'
+#with open(dump_file_no_bias, 'wb') as output:
+#    pickle.dump(data_no_bias, output)
+#    pickle.dump(W, output)
+#
 
 data_with_bias = get_feature_by_subject(sub_volumes_dir, W, b)
 

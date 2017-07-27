@@ -9,10 +9,10 @@
 #python src/load-predict.py --data_dir='/data1/CHUONG_DATA/ChuongWork/Data4DeepLearning/volumes_freqSum' --base_dir='/data1/CHUONG_DATA/ChuongWork/Data4DeepLearning/results' --model='freqSumSmall' --data_type='freqSum' 
 
 # freqSumBig + no tied weight
-python src/load-predict.py --data_base_dir='/home/chuong/EEG-Project/processed_data' --trained_model_base_dir='/home/chuong/EEG-Project/trained_models' --model='freqSum_NoTiedWeight_Big' --trained_model_name='2017-07-18-052148' --data_type='freqSum' --data_normalization='normalize'
+#python src/load-predict.py --data_base_dir='/home/chuong/EEG-Project/processed_data' --trained_model_base_dir='/home/chuong/EEG-Project/trained_models' --model='freqSum_NoTiedWeight_Big' --trained_model_name='2017-07-18-052148' --data_type='freqSum' --data_normalization='normalize' --feature_activation='linear'
 
 # Small freqSum + no tied weight + Medium size
-#python src/load-predict.py --data_base_dir='/home/chuong/EEG-Project/processed_data' --trained_model_base_dir='/home/chuong/EEG-Project/trained_models' --model='freqSum_NoTiedWeight_Medium' --trained_model_name='2017-07-17-021238' --data_type='freqSum' --data_normalization='normalize'
+python src/load-predict.py --data_base_dir='/home/chuong/EEG-Project/processed_data' --trained_model_base_dir='/home/chuong/EEG-Project/trained_models' --model='freqSum_NoTiedWeight_Medium' --trained_model_name='2017-07-23-221053-linear' --data_type='freqSum' --data_normalization='normalize' --feature_activation='linear'
 
 # Small freqSum + no tied weight + Medium size
 #python src/load-predict.py --data_base_dir='/home/chuong/EEG-Project/processed_data' --trained_model_base_dir='/home/chuong/EEG-Project/trained_models' --model='freqSum_NoTiedWeight_Medium' --trained_model_name='2017-07-11-061415' --data_type='freqSum'
