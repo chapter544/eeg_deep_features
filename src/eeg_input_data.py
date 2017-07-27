@@ -49,7 +49,9 @@ class eeg_data(object):
             mean_data = np.mean(all_data, axis=0)
             std_data = np.std(all_data, axis=0)
             np.savez('normalization.npz', mean_val=mean_data, std_val=std_data)
-            all_data = (all_data - mean_data) / std_data
+            all_data -= mean_data
+            all_data /=  std_data
+            #all_data = (all_data - mean_data) / std_data
             self._validation = all_data[:500]
             self._data = all_data
         else:

@@ -159,7 +159,7 @@ def generate_volumes_freq_4_30(data_dir, out_dir):
     for fName in glob.glob("*.mat"):
         start_freq=4
         end_freq=30
-        cortex_sample_rate=2
+        cortex_sample_rate=3
         subsample_3_40_freq_mat_volume(
                 data_dir + '/' + fName, 
                 start_freq, end_freq, 
