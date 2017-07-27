@@ -29,6 +29,37 @@ def subsample_mat_volume_freqSum(input_file, out_dir=None):
     h5file.close()
 
 
+
+def subsample_3_40_freq_mat_volume(input_file, 
+        start_freq=4, end_freq=30, 
+        cortex_sample_rate=1, out_dir=None):
+    f = h5py.File(input_file)
+    # f.keys() list the dictionary that the mat file contains
+
+    real_part = np.array(f['invres2dreal'], dtype=np.float32)
+    imag_part = np.array(f['invres2dimag'], dtype=np.float32)
+
+    # reshape to the 283x100 slices 
+    A = np.reshape(real_part, (-1, 100, 18715))
+    B = np.reshape(imag_part, (-1, 100, 18715))
+
+    AA = A[:,start_freq-1:end_freq,::cortex_sample_rate]
+    BB = B[:,start_freq-1:end_freq,::cortex_sample_rate]
+    C = np.sqrt(AA**2 + BB**2)
+    C = C.reshape(C.shape[0],-1)
+
+    outFile = input_file + '_freq' + str(start_freq) + '_' + \
+              str(end_freq) + '_cortexsample' + \
+              str(cortex_sample_rate) + '.h5'
+    if out_dir is not None:
+        outFile = out_dir + '/' + os.path.basename(outFile)
+
+    h5file = h5py.File(outFile, mode='w')
+    h5file.create_dataset("data", data=C) 
+    h5file.close()
+
+
+
 def subsample_mat_volume(input_file, 
         start_time_sec=30, end_time_sec=150, 
         freq_trunc=40, cortex_sample_rate=4, out_dir=None):
@@ -122,6 +153,18 @@ def generate_subsample_volumes_freqSum(data_dir, out_dir):
         subsample_mat_volume_freqSum(data_dir + '/' + fName, out_dir)
 
 
+def generate_volumes_freq_4_30(data_dir, out_dir):
+    os.chdir(data_dir)
+
+    for fName in glob.glob("*.mat"):
+        start_freq=4
+        end_freq=30
+        cortex_sample_rate=2
+        subsample_3_40_freq_mat_volume(
+                data_dir + '/' + fName, 
+                start_freq, end_freq, 
+                cortex_sample_rate, 
+                out_dir)
 
 
 
@@ -133,7 +176,7 @@ def generate_subsample_a_volume(data_dir, start_time_sec, end_time_sec, freq_tru
 
 def main():
     #data_dir = '/data1/CHUONG_DATA/ChuongWork/Data4DeepLearning/invcomp'
-    data_dir = '/data2/Data4Deeplearning/invcomp'
+    data_dir = '/home/chuong/EEG-Project/invcomp'
 
     # Generate subvolumes with sampling on both time, frequency, and 
     # cortex (space) axes.
@@ -141,8 +184,11 @@ def main():
     #generate_subsample_volumes(data_dir, out_dir)
 
     #out_dir = '/data1/CHUONG_DATA/ChuongWork/Data4DeepLearning/volumes_freqSum'
-    out_dir = '/home/chuong/EEG-Project/volumes_freqSum'
-    generate_subsample_volumes_freqSum(data_dir, out_dir)
+    out_dir = '/home/chuong/volumes_freq_4_30'
+
+    generate_volumes_freq_4_30(data_dir, out_dir)
+
+    #generate_subsample_volumes_freqSum(data_dir, out_dir)
 
     # Generate subvolumes with sampling on both time, frequency, and 
     # cortex (space) axes.
