@@ -32,6 +32,11 @@ def get_input_data_path(model, data_base_dir):
 	elif model == "freq_4_30_NoTiedWeight_Small":
 		# this is freq_4_30
 		sub_volumes_dir = '/data1/volumes_freq_4_30'
+		#sub_volumes_dir = '/home/chuong/volumes_freq_4_30'
+	elif model == "freq_4_30_TiedWeight_Small":
+		# this is freq_4_30
+		#sub_volumes_dir = '/data1/volumes_freq_4_30'
+		sub_volumes_dir = '/home/chuong/volumes_freq_4_30'
 	elif model == "freqSum_NoTiedWeight_Medium":
 		# this is freqSum 
 		sub_volumes_dir = data_base_dir + '/' + 'volumes_freqSum'

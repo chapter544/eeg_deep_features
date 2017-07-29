@@ -26,6 +26,7 @@ from models.fc_freqSum_TiedWeight import build_fc_freqSum_NoTiedWeight_Small
 from models.fc_freqSum_TiedWeight import build_fc_freqSum_NoTiedWeight_Medium
 from models.fc_freqSum_TiedWeight import build_fc_freqSum_NoTiedWeight_Tiny
 from models.fc_freqSum_TiedWeight import build_fc_freq_4_30_NoTiedWeight_Small
+from models.fc_freqSum_TiedWeight import build_fc_freq_4_30_TiedWeight_Small
 import models
 
 FLAGS = None
@@ -92,6 +93,10 @@ def main(_):
                gamma=gamma, activation=feature_activation)
     elif FLAGS.model == 'freq_4_30_NoTiedWeight_Small':
         loss, decoded, l1_loss = build_fc_freq_4_30_NoTiedWeight_Small(
+               x, x_dim, dropout_keep_prob, 
+               gamma=gamma, activation=feature_activation)
+    elif FLAGS.model == 'freq_4_30_TiedWeight_Small':
+        loss, decoded, l1_loss = build_fc_freq_4_30_TiedWeight_Small(
                x, x_dim, dropout_keep_prob, 
                gamma=gamma, activation=feature_activation)
     elif FLAGS.model == 'freqSum_NoTiedWeight_Medium':
