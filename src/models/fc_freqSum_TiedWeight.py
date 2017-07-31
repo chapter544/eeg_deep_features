@@ -264,13 +264,14 @@ def build_fc_freqSum_TiedWeight_Big2(x, x_dim, keep_prob, gamma=1e-7):
     return loss, y, tf.constant(0) 
 
 
+
 def build_fc_freq_4_30_TiedWeight_Small(x, x_dim, keep_prob, gamma=1e-7, activation='relu'):
     # FC1
     with tf.name_scope("FC1"):
-        fc1_dim = 500
+        fc1_dim = 1024
         W_fc1 = weight_variable([x_dim, fc1_dim])
         b_fc1 = weight_variable([fc1_dim])
-        h_fc1 = tf.nn.relu(tf.matmul(x, W_fc1) + b_fc1)
+        h_fc1 = tf.nn.elu(tf.matmul(x, W_fc1) + b_fc1)
 
     # dropout
     #with tf.name_scope("Dropout1"):
@@ -279,11 +280,9 @@ def build_fc_freq_4_30_TiedWeight_Small(x, x_dim, keep_prob, gamma=1e-7, activat
     # FC2
     with tf.name_scope("FC2"):
         #fc2_dim = 4096
-        fc2_dim = 200
+        fc2_dim = 512
         W_fc2 = weight_variable([fc1_dim, fc2_dim])
         b_fc2 = weight_variable([fc2_dim])
-        #h_fc2 = tf.nn.relu(tf.matmul(h_fc1_drop, W_fc2) + b_fc2)
-        #h_fc2 = tf.nn.relu(tf.matmul(h_fc1, W_fc2) + b_fc2)
         h_fc2 = tf.nn.elu(tf.matmul(h_fc1, W_fc2) + b_fc2)
 
     # dropout
@@ -292,29 +291,38 @@ def build_fc_freq_4_30_TiedWeight_Small(x, x_dim, keep_prob, gamma=1e-7, activat
 
     # FC3
     with tf.name_scope("FC3"):
-        fc3_dim = 64
+        fc3_dim = 128
         W_fc3 = weight_variable([fc2_dim, fc3_dim])
         b_fc3 = weight_variable([fc3_dim])
         #h_fc3 = tf.nn.relu(tf.matmul(h_fc2, W_fc3) + b_fc3)
         h_fc3 = tf.nn.elu(tf.matmul(h_fc2, W_fc3) + b_fc3)
 
+    # FC4
+    with tf.name_scope("FC4"):
+        fc4_dim = 64
+        W_fc4 = weight_variable([fc3_dim, fc4_dim])
+        b_fc4 = weight_variable([fc4_dim])
+        h_fc4 = tf.nn.elu(tf.matmul(h_fc3, W_fc4) + b_fc4)
+
+    # FC5
+    with tf.name_scope("FC5"):
+        fc5_dim = 128
+        #W_fc5 = weight_variable([fc4_dim, fc5_dim])
+        W_fc5 = tf.transpose(W_fc4)
+        b_fc5 = weight_variable([fc5_dim])
+        h_fc5 = tf.nn.elu(tf.matmul(h_fc4, W_fc5) + b_fc5)
 
     with tf.name_scope("FC6"):
-        fc6_dim = 200
-        #W_fc6 = weight_variable([fc3_dim, fc6_dim])
+        fc6_dim = 512
         W_fc6 = tf.transpose(W_fc3)
         b_fc6 = weight_variable([fc6_dim])
-        #h_fc6 = tf.nn.relu(tf.matmul(h_fc3, W_fc6) + b_fc6)
-        h_fc6 = tf.nn.elu(tf.matmul(h_fc3, W_fc6) + b_fc6)
+        h_fc6 = tf.nn.elu(tf.matmul(h_fc5, W_fc6) + b_fc6)
 
 
     with tf.name_scope("FC7"):
-        fc7_dim = 500
-        #W_fc7 = weight_variable([fc6_dim, fc7_dim])
+        fc7_dim = 1024
         W_fc7 = tf.transpose(W_fc2)
         b_fc7 = weight_variable([fc7_dim])
-        #h_fc7 = tf.nn.relu(tf.matmul(h_fc6_drop, W_fc7) + b_fc7)
-        #h_fc7 = tf.nn.relu(tf.matmul(h_fc6, W_fc7) + b_fc7)
         h_fc7 = tf.nn.elu(tf.matmul(h_fc6, W_fc7) + b_fc7)
 
     # dropout
@@ -340,8 +348,8 @@ def build_fc_freq_4_30_TiedWeight_Small(x, x_dim, keep_prob, gamma=1e-7, activat
 
         l1_loss_sum = tf.reduce_sum(tf.abs(W_fc1)) + \
                       tf.reduce_sum(tf.abs(W_fc2)) + \
-                      tf.reduce_sum(tf.abs(W_fc3)) 
-                  #tf.reduce_sum(tf.abs(W_fc4))
+                      tf.reduce_sum(tf.abs(W_fc3)) + \
+                      tf.reduce_sum(tf.abs(W_fc4))
         #          tf.reduce_sum(tf.abs(W_fc5)) +  \
         #          tf.reduce_sum(tf.abs(W_fc6))
         l1_loss = l1_loss_sum * gamma
@@ -397,24 +405,34 @@ def build_fc_freq_4_30_NoTiedWeight_Small(x, x_dim, keep_prob, gamma=1e-7, activ
         fc3_dim = 64
         W_fc3 = weight_variable([fc2_dim, fc3_dim])
         b_fc3 = weight_variable([fc3_dim])
-        #h_fc3 = tf.nn.relu(tf.matmul(h_fc2, W_fc3) + b_fc3)
         h_fc3 = tf.nn.elu(tf.matmul(h_fc2, W_fc3) + b_fc3)
+
+    # FC4
+    with tf.name_scope("FC4"):
+        fc4_dim = 64
+        W_fc4 = weight_variable([fc3_dim, fc4_dim])
+        b_fc4 = weight_variable([fc4_dim])
+        h_fc4 = tf.nn.elu(tf.matmul(h_fc3, W_fc4) + b_fc4)
+
+    # FC5
+    with tf.name_scope("FC5"):
+        fc5_dim = 128
+        W_fc5 = weight_variable([fc4_dim, fc5_dim])
+        b_fc5 = weight_variable([fc5_dim])
+        h_fc5 = tf.nn.elu(tf.matmul(h_fc4, W_fc5) + b_fc5)
 
 
     with tf.name_scope("FC6"):
         fc6_dim = 200
         W_fc6 = weight_variable([fc3_dim, fc6_dim])
         b_fc6 = weight_variable([fc6_dim])
-        #h_fc6 = tf.nn.relu(tf.matmul(h_fc3, W_fc6) + b_fc6)
-        h_fc6 = tf.nn.elu(tf.matmul(h_fc3, W_fc6) + b_fc6)
+        h_fc6 = tf.nn.elu(tf.matmul(h_fc5, W_fc6) + b_fc6)
 
 
     with tf.name_scope("FC7"):
         fc7_dim = 500
         W_fc7 = weight_variable([fc6_dim, fc7_dim])
         b_fc7 = weight_variable([fc7_dim])
-        #h_fc7 = tf.nn.relu(tf.matmul(h_fc6, W_fc7) + b_fc7)
-        #h_fc7 = tf.nn.relu(tf.matmul(h_fc6_drop, W_fc7) + b_fc7)
         h_fc7 = tf.nn.elu(tf.matmul(h_fc6, W_fc7) + b_fc7)
 
     # dropout
@@ -439,7 +457,7 @@ def build_fc_freq_4_30_NoTiedWeight_Small(x, x_dim, keep_prob, gamma=1e-7, activ
 
         l1_loss_sum = tf.reduce_sum(tf.abs(W_fc1)) + \
                       tf.reduce_sum(tf.abs(W_fc2)) + \
-                      tf.reduce_sum(tf.abs(W_fc3)) + \ 
+                      tf.reduce_sum(tf.abs(W_fc3)) + \
                       tf.reduce_sum(tf.abs(W_fc6)) + \
                       tf.reduce_sum(tf.abs(W_fc7)) +  \
                       tf.reduce_sum(tf.abs(W_fc8))

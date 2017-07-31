@@ -58,6 +58,9 @@ class eeg_data(object):
             self._validation = all_data[:500]
             self._data = all_data
 
+        # quick test overfitting
+        #self._data = self._data[:100]
+
         self._labels = None
         self._num_examples = self._data.shape[0]
         self._epochs_completed = 0
