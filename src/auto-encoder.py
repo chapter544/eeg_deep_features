@@ -56,6 +56,7 @@ def main(_):
     with tf.name_scope("input"):
         x = tf.placeholder(tf.float32, [None, x_dim])
         dropout_keep_prob = tf.placeholder(tf.float32)
+        is_training = tf.placeholder(tf.bool, [])
 
 
     # BUILD MODEL
@@ -97,7 +98,7 @@ def main(_):
                gamma=gamma, activation=feature_activation)
     elif FLAGS.model == 'freq_4_30_TiedWeight_Small':
         loss, decoded, l1_loss = build_fc_freq_4_30_TiedWeight_Small(
-               x, x_dim, dropout_keep_prob, 
+               x, x_dim, is_training, dropout_keep_prob, 
                gamma=gamma, activation=feature_activation)
     elif FLAGS.model == 'freqSum_NoTiedWeight_Medium':
         loss, decoded, l1_loss = build_fc_freqSum_NoTiedWeight_Medium(
@@ -115,7 +116,10 @@ def main(_):
         os.makedirs(model_path)
 
     # write model logs for tensorboard
-    logs_path = '/tmp/eeg/logs/' +  FLAGS.model
+    logs_path = '/tmp/eeg/logs/' +  \
+                FLAGS.model +  \
+                '-' + \
+                datetime.now().strftime('%Y-%m-%d-%H%M%S')
     model_file_prefix = model_path + '/' + FLAGS.model + '_epoch_'
 
 
@@ -186,7 +190,7 @@ def main(_):
             for batch in  eeg.iterate_minibatches(batch_size, shuffle=True):
                 batch_idx += 1
                 batch_xs = batch
-                feeds = {x: batch_xs, dropout_keep_prob: 0.5}
+                feeds = {x: batch_xs, dropout_keep_prob: 0.5, is_training: True}
                 _, step, summary = sess.run(
                         [train_step, global_step, summary_op],
                         feed_dict=feeds)
@@ -194,14 +198,22 @@ def main(_):
                 # write log
                 writer.add_summary(summary, step)
 
-                train_loss = loss.eval({x: batch_xs, dropout_keep_prob: 1.0})
+                train_loss = loss.eval({
+                                        x: batch_xs, 
+                                        dropout_keep_prob: 1.0, 
+                                        is_training: False })
                 avg_cost += train_loss
                 if batch_idx % display_step == 0:
                     print('  step %6d, loss = %6.5f' % (batch_idx, train_loss))
 
-            eval_loss = loss.eval({x: eeg._validation, dropout_keep_prob: 1.0})
-            l1_loss_network = l1_loss.eval(
-                    {x: eeg._validation, dropout_keep_prob: 1.0})
+            eval_loss = loss.eval({
+                                    x: eeg._validation, 
+                                    dropout_keep_prob: 1.0,
+                                    is_training: False })
+            l1_loss_network = l1_loss.eval({
+                        x: eeg._validation, 
+                        dropout_keep_prob: 1.0, 
+                        is_training: False})
             current_step = tf.train.global_step(sess, global_step)
             avg_epoch_loss = avg_cost / total_batches
             print('Epoch {:6d}, step {:6d}, l1_loss= {:6.5f}, agv_loss= {:6.5f}, eval_los= {:6.5f}'.format(epoch, current_step, l1_loss_network, avg_epoch_loss, eval_loss))

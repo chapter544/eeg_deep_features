@@ -15,7 +15,7 @@ import os
 import argparse
 import sys
 from datetime import datetime
-from tf_utils import weight_variable, bias_variable
+from tf_utils import weight_variable, bias_variable, batch_norm_wrapper
 
 def build_fc_freqSum_TiedWeight_NoBias(x, x_dim, keep_prob, gamma=1e-7):
     # FC1
@@ -265,13 +265,15 @@ def build_fc_freqSum_TiedWeight_Big2(x, x_dim, keep_prob, gamma=1e-7):
 
 
 
-def build_fc_freq_4_30_TiedWeight_Small(x, x_dim, keep_prob, gamma=1e-7, activation='relu'):
+def build_fc_freq_4_30_TiedWeight_Small(x, x_dim, keep_prob, is_training,
+                                        gamma=1e-7, activation='relu'):
     # FC1
     with tf.name_scope("FC1"):
-        fc1_dim = 1024
+        fc1_dim = 512
         W_fc1 = weight_variable([x_dim, fc1_dim])
         b_fc1 = weight_variable([fc1_dim])
         h_fc1 = tf.nn.elu(tf.matmul(x, W_fc1) + b_fc1)
+        h_fc1 = batch_norm_wrapper(h_fc1, is_training)
 
     # dropout
     #with tf.name_scope("Dropout1"):
@@ -280,10 +282,11 @@ def build_fc_freq_4_30_TiedWeight_Small(x, x_dim, keep_prob, gamma=1e-7, activat
     # FC2
     with tf.name_scope("FC2"):
         #fc2_dim = 4096
-        fc2_dim = 512
+        fc2_dim = 256
         W_fc2 = weight_variable([fc1_dim, fc2_dim])
         b_fc2 = weight_variable([fc2_dim])
         h_fc2 = tf.nn.elu(tf.matmul(h_fc1, W_fc2) + b_fc2)
+        h_fc2 = batch_norm_wrapper(h_fc2, is_training)
 
     # dropout
     #with tf.name_scope("Dropout2"):
@@ -296,6 +299,7 @@ def build_fc_freq_4_30_TiedWeight_Small(x, x_dim, keep_prob, gamma=1e-7, activat
         b_fc3 = weight_variable([fc3_dim])
         #h_fc3 = tf.nn.relu(tf.matmul(h_fc2, W_fc3) + b_fc3)
         h_fc3 = tf.nn.elu(tf.matmul(h_fc2, W_fc3) + b_fc3)
+        h_fc3 = batch_norm_wrapper(h_fc3, is_training)
 
     # FC4
     with tf.name_scope("FC4"):
@@ -303,6 +307,7 @@ def build_fc_freq_4_30_TiedWeight_Small(x, x_dim, keep_prob, gamma=1e-7, activat
         W_fc4 = weight_variable([fc3_dim, fc4_dim])
         b_fc4 = weight_variable([fc4_dim])
         h_fc4 = tf.nn.elu(tf.matmul(h_fc3, W_fc4) + b_fc4)
+        h_fc4 = batch_norm_wrapper(h_fc4, is_training)
 
     # FC5
     with tf.name_scope("FC5"):
@@ -311,19 +316,22 @@ def build_fc_freq_4_30_TiedWeight_Small(x, x_dim, keep_prob, gamma=1e-7, activat
         W_fc5 = tf.transpose(W_fc4)
         b_fc5 = weight_variable([fc5_dim])
         h_fc5 = tf.nn.elu(tf.matmul(h_fc4, W_fc5) + b_fc5)
+        h_fc5 = batch_norm_wrapper(h_fc5, is_training)
 
     with tf.name_scope("FC6"):
-        fc6_dim = 512
+        fc6_dim = 256
         W_fc6 = tf.transpose(W_fc3)
         b_fc6 = weight_variable([fc6_dim])
         h_fc6 = tf.nn.elu(tf.matmul(h_fc5, W_fc6) + b_fc6)
+        h_fc6 = batch_norm_wrapper(h_fc6, is_training)
 
 
     with tf.name_scope("FC7"):
-        fc7_dim = 1024
+        fc7_dim = 512
         W_fc7 = tf.transpose(W_fc2)
         b_fc7 = weight_variable([fc7_dim])
         h_fc7 = tf.nn.elu(tf.matmul(h_fc6, W_fc7) + b_fc7)
+        h_fc7 = batch_norm_wrapper(h_fc7, is_training)
 
     # dropout
     #with tf.name_scope("Dropout7"):
