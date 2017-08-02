@@ -18,7 +18,7 @@ def subsample_mat_volume_freqSum(input_file, out_dir=None):
     B = np.reshape(imag_part, (-1, 100, 18715))
 
     C = np.sqrt(A**2 + B**2)
-    D = np.sum(C, axis=1)
+    #D = np.sum(C, axis=1)
 
     outFile = input_file + '_freqSum.h5'
     #if out_dir is not None:
@@ -27,6 +27,42 @@ def subsample_mat_volume_freqSum(input_file, out_dir=None):
     h5file = h5py.File(outFile, mode='w')
     h5file.create_dataset("data", data=D) 
     h5file.close()
+
+
+def subsample_5_freq_mat_volume(input_file, cortex_sample_rate, out_dir=None):
+    f = h5py.File(input_file)
+    # f.keys() list the dictionary that the mat file contains
+
+    real_part = np.array(f['invres2dreal'], dtype=np.float32)
+    imag_part = np.array(f['invres2dimag'], dtype=np.float32)
+
+    # reshape to the 283x100 slices 
+    A = np.reshape(real_part, (-1, 100, 18715))
+    B = np.reshape(imag_part, (-1, 100, 18715))
+
+    AA = A[:,1:50,::cortex_sample_rate]
+    BB = B[:,1:50,::cortex_sample_rate]
+    C = np.sqrt(AA**2 + BB**2)
+
+    d1 = np.sum(C[:,0:2,:], axis=1) # delta
+    d2 = np.sum(C[:,3:6,:], axis=1) # theta
+    d3 = np.sum(C[:,7:12,:], axis=1) # alpha
+    d4 = np.sum(C[:,13:29,:], axis=1) # beta
+    d5 = np.sum(C[:,30:49,:], axis=1) # gamma
+
+    D = np.concatenate((d1, d2, d3, d4, d5), axis=1)
+    E = D.reshape(D.shape[0],-1)
+
+    outFile = input_file + '_freq_5_cortexsample' + \
+              str(cortex_sample_rate) + '.h5'
+    if out_dir is not None:
+        outFile = out_dir + '/' + os.path.basename(outFile)
+
+    h5file = h5py.File(outFile, mode='w')
+    h5file.create_dataset("data", data=E) 
+    h5file.close()
+
+
 
 
 
@@ -166,6 +202,14 @@ def generate_volumes_freq_4_30(data_dir, out_dir):
                 cortex_sample_rate, 
                 out_dir)
 
+def generate_volumes_freq_5(data_dir, out_dir):
+    os.chdir(data_dir)
+
+    cortex_sample_rate = 1
+    for fName in glob.glob("*.mat"):
+        subsample_5_freq_mat_volume(data_dir + '/' + fName, 
+                                    cortex_sample_rate, out_dir)
+
 
 
 def generate_subsample_a_volume(data_dir, start_time_sec, end_time_sec, freq_trunc, cortex_sample_rate):
@@ -184,9 +228,13 @@ def main():
     #generate_subsample_volumes(data_dir, out_dir)
 
     #out_dir = '/data1/CHUONG_DATA/ChuongWork/Data4DeepLearning/volumes_freqSum'
-    out_dir = '/home/chuong/volumes_freq_4_30'
+    #out_dir = '/home/chuong/volumes_freq_4_30'
+    #generate_volumes_freq_4_30(data_dir, out_dir)
 
-    generate_volumes_freq_4_30(data_dir, out_dir)
+
+    out_dir = '/home/chuong/volumes_freq_5'
+    generate_volumes_freq_5(data_dir, out_dir)
+
 
     #generate_subsample_volumes_freqSum(data_dir, out_dir)
 
