@@ -269,7 +269,7 @@ def build_fc_freq_5_TiedWeight_Small(x, x_dim, keep_prob, is_training,
                                         gamma=1e-7, activation='relu'):
     # FC1
     with tf.name_scope("FC1"):
-        fc1_dim = 2000
+        fc1_dim = 1024
         W_fc1 = weight_variable([x_dim, fc1_dim])
         b_fc1 = weight_variable([fc1_dim])
         h_fc1 = tf.nn.elu(tf.matmul(x, W_fc1) + b_fc1)
@@ -282,7 +282,7 @@ def build_fc_freq_5_TiedWeight_Small(x, x_dim, keep_prob, is_training,
     # FC2
     with tf.name_scope("FC2"):
         #fc2_dim = 4096
-        fc2_dim = 1000
+        fc2_dim = 512
         W_fc2 = weight_variable([fc1_dim, fc2_dim])
         b_fc2 = weight_variable([fc2_dim])
         h_fc2 = tf.nn.elu(tf.matmul(h_fc1, W_fc2) + b_fc2)
@@ -319,7 +319,7 @@ def build_fc_freq_5_TiedWeight_Small(x, x_dim, keep_prob, is_training,
         h_fc5 = batch_norm_wrapper(h_fc5, is_training)
 
     with tf.name_scope("FC6"):
-        fc6_dim = 1000
+        fc6_dim = 512
         W_fc6 = tf.transpose(W_fc3)
         b_fc6 = weight_variable([fc6_dim])
         h_fc6 = tf.nn.elu(tf.matmul(h_fc5, W_fc6) + b_fc6)
@@ -327,7 +327,7 @@ def build_fc_freq_5_TiedWeight_Small(x, x_dim, keep_prob, is_training,
 
 
     with tf.name_scope("FC7"):
-        fc7_dim = 2000
+        fc7_dim = 1024
         W_fc7 = tf.transpose(W_fc2)
         b_fc7 = weight_variable([fc7_dim])
         h_fc7 = tf.nn.elu(tf.matmul(h_fc6, W_fc7) + b_fc7)
