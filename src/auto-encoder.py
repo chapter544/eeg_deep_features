@@ -31,8 +31,7 @@ from models.fc_freqSum_TiedWeight import build_fc_freqSum_NoTiedWeight_Tiny
 from models.fc_freq_Models import build_fc_freq_4_30_TiedWeight_Small
 from models.fc_freq_Models import build_fc_freq_4_30_NoTiedWeight_Small
 from models.fc_freq_Models import build_fc_freq_5_TiedWeight_Small
-from models.fc_freq_Models import build_fc_freq_5_NoTiedWeight_Small
-import models
+
 
 FLAGS = None
 
