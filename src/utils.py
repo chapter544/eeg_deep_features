@@ -1,4 +1,16 @@
 from datetime import datetime
+from models.fc_freqSum_TiedWeight import build_fc_freqSum_TiedWeight
+from models.fc_freqSum_TiedWeight import build_fc_freqSum_TiedWeight_NoBias
+from models.fc_freqSum_TiedWeight import build_fc_freqSum_TiedWeight_NoDropout
+from models.fc_freqSum_TiedWeight import build_fc_freqSum
+from models.fc_freqSum_TiedWeight import build_fc_freqSum_TiedWeight_Big
+from models.fc_freqSum_TiedWeight import build_fc_freqSum_NoTiedWeight_Big
+from models.fc_freqSum_TiedWeight import build_fc_freqSum_NoTiedWeight_Small
+from models.fc_freqSum_TiedWeight import build_fc_freqSum_NoTiedWeight_Medium
+from models.fc_freqSum_TiedWeight import build_fc_freqSum_NoTiedWeight_Tiny
+from models.fc_freqSum_TiedWeight import build_fc_freq_4_30_NoTiedWeight_Small
+from models.fc_freqSum_TiedWeight import build_fc_freq_4_30_TiedWeight_Small
+from models.fc_freqSum_TiedWeight import build_fc_freq_5_TiedWeight_Small
 
 
 def get_input_data_path(model, data_base_dir):
@@ -48,6 +60,59 @@ def get_input_data_path(model, data_base_dir):
 		raise Exception("Invalid model name")
 
 	return sub_volumes_dir
+
+
+def build_model(model, x, x_dim, dropout_keep_prob, gamma, feature_activation, is_training):
+	if model == 'big':
+		print("Doing big model ...")
+		loss, decoded = build_fc_big_freqFlatten(x, x_dim, dropout_keep_prob)
+	elif model == 'freqSumSmall':
+		print("Doing small model with freqSum model ...")
+		loss, decoded = build_fc_freqFlatten_L1(x, x_dim, dropout_keep_prob)
+	elif model == 'freqSum_TiedWeight_NoBias':
+		loss, decoded, l1_loss = build_fc_freqSum_TiedWeight_NoBias(
+				x, x_dim, dropout_keep_prob, gamma)
+	elif model == 'freqSum_TiedWeight':
+		loss, decoded, l1_loss = build_fc_freqSum_TiedWeight(
+			   x, x_dim, dropout_keep_prob, gamma)
+	elif model == 'freqSum_TiedWeight_Big':
+		loss, decoded, l1_loss = build_fc_freqSum_TiedWeight_Big(
+			   x, x_dim, dropout_keep_prob,
+			   gamma=gamma, activation=feature_activation)
+	elif model == 'freqSum_NoTiedWeight_Big':
+		loss, decoded, l1_loss = build_fc_freqSum_NoTiedWeight_Big(
+			   x, x_dim, dropout_keep_prob,
+			   gamma=gamma, activation=feature_activation)
+	elif model == 'freqSum_NoTiedWeight_Tiny':
+		loss, decoded, l1_loss = build_fc_freqSum_NoTiedWeight_Tiny(
+			   x, x_dim, dropout_keep_prob, 
+			   gamma=gamma, activation=feature_activation)
+	elif model == 'freqSum_NoTiedWeight_Small':
+		loss, decoded, l1_loss = build_fc_freqSum_NoTiedWeight_Small(
+			   x, x_dim, dropout_keep_prob, 
+			   gamma=gamma, activation=feature_activation)
+	elif model == 'freq_4_30_NoTiedWeight_Small':
+		loss, decoded, l1_loss = build_fc_freq_4_30_NoTiedWeight_Small(
+			   x, x_dim, dropout_keep_prob, 
+			   gamma=gamma, activation=feature_activation)
+	elif model == 'freq_4_30_TiedWeight_Small':
+		 decoded, l1_loss = build_fc_freq_4_30_TiedWeight_Small(
+			   x, x_dim, is_training, dropout_keep_prob, 
+			   gamma=gamma, activation=feature_activation)
+	elif model == 'freq_5_TiedWeight_Small':
+		loss, decoded, l1_loss = build_fc_freq_5_TiedWeight_Small(
+			   x, x_dim, is_training, dropout_keep_prob, 
+			   gamma=gamma, activation=feature_activation)
+	elif FLAGS.model == 'freqSum_NoTiedWeight_Medium':
+		loss, decoded, l1_loss = build_fc_freqSum_NoTiedWeight_Medium(
+			   x, x_dim, dropout_keep_prob, 
+			   gamma=gamma, activation=feature_activation)
+	else:
+		print("Doing small L1 model ...")
+		loss, decoded = build_fc_freqSum_L1(x, x_dim, dropout_keep_prob, gamma)
+
+	return loss, decoded, l1_loss
+
 
 
 

@@ -15,7 +15,9 @@ import sys
 from datetime import datetime
 from pkg_resources import parse_version
 from eeg_input_data import eeg_data
+from eeg_org_data import eeg_subject_data
 from utils import get_input_data_path, get_data_path_with_timestamp
+from utils import build_model
 from models.fc_freqSum_TiedWeight import build_fc_freqSum_TiedWeight
 from models.fc_freqSum_TiedWeight import build_fc_freqSum_TiedWeight_NoBias
 from models.fc_freqSum_TiedWeight import build_fc_freqSum_TiedWeight_NoDropout
@@ -25,9 +27,11 @@ from models.fc_freqSum_TiedWeight import build_fc_freqSum_NoTiedWeight_Big
 from models.fc_freqSum_TiedWeight import build_fc_freqSum_NoTiedWeight_Small
 from models.fc_freqSum_TiedWeight import build_fc_freqSum_NoTiedWeight_Medium
 from models.fc_freqSum_TiedWeight import build_fc_freqSum_NoTiedWeight_Tiny
-from models.fc_freqSum_TiedWeight import build_fc_freq_4_30_NoTiedWeight_Small
-from models.fc_freqSum_TiedWeight import build_fc_freq_4_30_TiedWeight_Small
-from models.fc_freqSum_TiedWeight import build_fc_freq_5_TiedWeight_Small
+
+from models.fc_freq_Models import build_fc_freq_4_30_TiedWeight_Small
+from models.fc_freq_Models import build_fc_freq_4_30_NoTiedWeight_Small
+from models.fc_freq_Models import build_fc_freq_5_TiedWeight_Small
+from models.fc_freq_Models import build_fc_freq_5_NoTiedWeight_Small
 import models
 
 FLAGS = None
@@ -45,7 +49,7 @@ def main(_):
         eeg.get_data(sub_volumes_dir, num_data_sec=-1, 
                 fake=FLAGS.test, normalization=FLAGS.data_normalization)
 
-    X = eeg.data
+    X = eeg.train_data
     print('{} x {}'.format(X.shape[0], X.shape[1]))
     x_dim = X.shape[1]
 
@@ -64,54 +68,15 @@ def main(_):
     # L1 regularization gamma
     gamma = FLAGS.gamma
     feature_activation = FLAGS.feature_activation
+    loss, decoded, l1_loss = build_model(
+		FLAGS.model,
+		x,
+		x_dim,
+		dropout_keep_prob,
+		gamma,
+		feature_activation,
+		is_training)
 
-    if FLAGS.model == 'big':
-        print("Doing big model ...")
-        loss, decoded = build_fc_big_freqFlatten(x, x_dim, dropout_keep_prob)
-    elif FLAGS.model == 'freqSumSmall':
-        print("Doing small model with freqSum model ...")
-        loss, decoded = build_fc_freqFlatten_L1(x, x_dim, dropout_keep_prob)
-    elif FLAGS.model == 'freqSum_TiedWeight_NoBias':
-        loss, decoded, l1_loss = build_fc_freqSum_TiedWeight_NoBias(
-                x, x_dim, dropout_keep_prob, gamma)
-    elif FLAGS.model == 'freqSum_TiedWeight':
-        loss, decoded, l1_loss = build_fc_freqSum_TiedWeight(
-               x, x_dim, dropout_keep_prob, gamma)
-    elif FLAGS.model == 'freqSum_TiedWeight_Big':
-        loss, decoded, l1_loss = build_fc_freqSum_TiedWeight_Big(
-               x, x_dim, dropout_keep_prob,
-               gamma=gamma, activation=feature_activation)
-    elif FLAGS.model == 'freqSum_NoTiedWeight_Big':
-        loss, decoded, l1_loss = build_fc_freqSum_NoTiedWeight_Big(
-               x, x_dim, dropout_keep_prob,
-               gamma=gamma, activation=feature_activation)
-    elif FLAGS.model == 'freqSum_NoTiedWeight_Tiny':
-        loss, decoded, l1_loss = build_fc_freqSum_NoTiedWeight_Tiny(
-               x, x_dim, dropout_keep_prob, 
-               gamma=gamma, activation=feature_activation)
-    elif FLAGS.model == 'freqSum_NoTiedWeight_Small':
-        loss, decoded, l1_loss = build_fc_freqSum_NoTiedWeight_Small(
-               x, x_dim, dropout_keep_prob, 
-               gamma=gamma, activation=feature_activation)
-    elif FLAGS.model == 'freq_4_30_NoTiedWeight_Small':
-        loss, decoded, l1_loss = build_fc_freq_4_30_NoTiedWeight_Small(
-               x, x_dim, dropout_keep_prob, 
-               gamma=gamma, activation=feature_activation)
-    elif FLAGS.model == 'freq_4_30_TiedWeight_Small':
-        loss, decoded, l1_loss = build_fc_freq_4_30_TiedWeight_Small(
-               x, x_dim, is_training, dropout_keep_prob, 
-               gamma=gamma, activation=feature_activation)
-    elif FLAGS.model == 'freq_5_TiedWeight_Small':
-        loss, decoded, l1_loss = build_fc_freq_5_TiedWeight_Small(
-               x, x_dim, is_training, dropout_keep_prob, 
-               gamma=gamma, activation=feature_activation)
-    elif FLAGS.model == 'freqSum_NoTiedWeight_Medium':
-        loss, decoded, l1_loss = build_fc_freqSum_NoTiedWeight_Medium(
-               x, x_dim, dropout_keep_prob, 
-               gamma=gamma, activation=feature_activation)
-    else:
-        print("Doing small L1 model ...")
-        loss, decoded = build_fc_freqSum_L1(x, x_dim, dropout_keep_prob, gamma)
 
     # create model directory to write outputs
     model_path = get_data_path_with_timestamp(
@@ -133,24 +98,24 @@ def main(_):
 
     # OPTIMIZER
      # AdamOptimizer
-    #lr_rate = FLAGS.learning_rate
-    #train_step = tf.train.AdamOptimizer(
-    #                learning_rate=lr_rate).\
-    #                minimize(loss, global_step=global_step) 
+    lr_rate = FLAGS.learning_rate
+    train_step = tf.train.AdamOptimizer(
+                    learning_rate=lr_rate).\
+                    minimize(loss, global_step=global_step) 
 
 
     # MomentumOptmizer
-    decay_rate = FLAGS.decay_rate
-    decay_step = FLAGS.decay_step
-    lr_rate = tf.train.exponential_decay(
-            FLAGS.learning_rate, global_step,
-            decay_step, decay_rate, staircase=True)
+    #decay_rate = FLAGS.decay_rate
+    #decay_step = FLAGS.decay_step
+    #lr_rate = tf.train.exponential_decay(
+    #        FLAGS.learning_rate, global_step,
+    #        decay_step, decay_rate, staircase=True)
 
-    momentum = 0.9
+    #momentum = 0.9
     # define the training paramters and model, 
-    train_step = tf.train.MomentumOptimizer(
-            lr_rate, momentum, use_nesterov=True).minimize(
-                    loss, global_step=global_step) 
+    #train_step = tf.train.MomentumOptimizer(
+    #        lr_rate, momentum, use_nesterov=True).minimize(
+    #                loss, global_step=global_step) 
 
 
 
@@ -216,11 +181,11 @@ def main(_):
                     print('  step %6d, loss = %6.5f' % (batch_idx, train_loss))
 
             eval_loss = loss.eval({
-                                    x: eeg._validation, 
+                                    x: eeg._valid_data, 
                                     dropout_keep_prob: 1.0,
                                     is_training: False })
             l1_loss_network = l1_loss.eval({
-                        x: eeg._validation, 
+                        x: eeg._valid_data, 
                         dropout_keep_prob: 1.0, 
                         is_training: False})
             current_step = tf.train.global_step(sess, global_step)
