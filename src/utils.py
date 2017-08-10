@@ -13,6 +13,7 @@ from models.fc_freq_Models import build_fc_freq_4_30_TiedWeight_Small
 from models.fc_freq_Models import build_fc_freq_5_TiedWeight_Small
 from models.fc_freq_Models import build_fc_freq_5_NoTiedWeight_Small
 from models.fc_freq_Models import build_fc_freq_5_NoTiedWeight_L1_Small
+from models.fc_freq_Models import build_fc_freq_5_TiedWeight_L1_Small
 from models.fc_freq_Models import build_fc_freq_5_TiedWeight_Big
 from models.fc_freq_Models import build_fc_freq_5_NoTiedWeight_Big
 
@@ -63,8 +64,12 @@ def get_input_data_path(model, data_base_dir):
 		#sub_volumes_dir = '/home/chuong/volumes_freq_5'
 	elif model == "freq_5_NoTiedWeight_L1_Small":
 		# this is freq_5
-		sub_volumes_dir = '/data1/volumes_freq_5'
-		#sub_volumes_dir = '/home/chuong/volumes_freq_5'
+		#sub_volumes_dir = '/data1/volumes_freq_5'
+		sub_volumes_dir = '/home/chuong/volumes_freq_5'
+	elif model == "freq_5_TiedWeight_L1_Small":
+		# this is freq_5
+		#sub_volumes_dir = '/data1/volumes_freq_5'
+		sub_volumes_dir = '/home/chuong/volumes_freq_5'
 	elif model == "freq_5_TiedWeight_Big":
 		# this is freq_5
 		sub_volumes_dir = '/data1/volumes_freq_5'
@@ -82,7 +87,9 @@ def get_input_data_path(model, data_base_dir):
 	return sub_volumes_dir
 
 
-def build_model(model, x, x_dim, dropout_keep_prob, gamma, feature_activation, is_training):
+def build_model(model, x, x_dim, 
+		dropout_keep_prob, gamma, 
+		feature_activation, is_training):
 	if model == 'big':
 		print("Doing big model ...")
 		loss, decoded = build_fc_big_freqFlatten(x, x_dim, dropout_keep_prob)
@@ -137,6 +144,10 @@ def build_model(model, x, x_dim, dropout_keep_prob, gamma, feature_activation, i
 			   gamma=gamma, activation=feature_activation)
 	elif model == 'freq_5_NoTiedWeight_L1_Small':
 		loss, decoded, l1_loss = build_fc_freq_5_NoTiedWeight_L1_Small(
+			   x, x_dim,  dropout_keep_prob, is_training,
+			   gamma=gamma, activation=feature_activation)
+	elif model == 'freq_5_TiedWeight_L1_Small':
+		loss, decoded, l1_loss = build_fc_freq_5_TiedWeight_L1_Small(
 			   x, x_dim,  dropout_keep_prob, is_training,
 			   gamma=gamma, activation=feature_activation)
 	else:
