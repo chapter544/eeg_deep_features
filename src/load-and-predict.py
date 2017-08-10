@@ -64,9 +64,9 @@ def main(_):
         eeg.get_data(sub_volumes_dir, num_data_sec=-1, 
                 fake=False, normalization=FLAGS.data_normalization)
 
-    subject_data = eeg._data
+    subjects_data = eeg._data
     subject_names = eeg._subjects
-    X = subject_data[0]
+    X = subjects_data[0]
 
     print('{} x {}'.format(X.shape[0], X.shape[1]))
     x_dim = X.shape[-1]
@@ -75,24 +75,20 @@ def main(_):
     model_path = FLAGS.trained_model_base_dir
 
     # Input placeholder for input variables
-    with tf.name_scope("input"):
-        x = tf.placeholder(tf.float32, [None, x_dim])
-        dropout_keep_prob = tf.placeholder(tf.float32)
-        is_training = tf.placeholder(tf.bool, [])
+    #with tf.name_scope("input"):
+    #    x = tf.placeholder(tf.float32, [None, x_dim])
+    #    dropout_keep_prob = tf.placeholder(tf.float32)
+    #    is_training = tf.placeholder(tf.bool, [])
 
+    # create output directory for image features
+    output_base_dir = FLAGS.output_base_dir
+    output_model_dir = output_base_dir + '/' + FLAGS.model
+    if not os.path.exists(output_model_dir):
+        os.makedirs(output_model_dir)
+    output_dir = output_model_dir + '/' + FLAGS.trained_model_name
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
 
-    # BUILD MODEL
-    gamma = 1e-7
-    feature_activation = 'relu'
-
-    loss, decoded, l1_loss = build_model(
-        FLAGS.model,
-        x,
-        x_dim,
-        dropout_keep_prob,
-        gamma,
-        feature_activation,
-        is_training)
 
     # MODEL PATH
     model_path = FLAGS.trained_model_base_dir + '/' + FLAGS.model  + '/' + FLAGS.trained_model_name
@@ -105,37 +101,36 @@ def main(_):
 
     tf_version = tf.__version__.rpartition('.')[0]
     with tf.Session() as sess:
-        tf.reset_default_graph()
-        if parse_version(tf_version) >= parse_version('0.12.0'):
-            sess.run(tf.global_variables_initializer())
-        else:
-            sess.run(tf.initialize_all_variables())
+        #tf.reset_default_graph()
         # load the model
         saver = tf.train.import_meta_graph(meta_file_fullpath)
         check_point_dir = model_path + '/'
         saver.restore(sess, tf.train.latest_checkpoint(check_point_dir))
 
+        graph = tf.get_default_graph()
+        x = graph.get_tensor_by_name('input/Placeholder:0')
+        dropout_keep_prob = graph.get_tensor_by_name('input/Placeholder_1:0')
+        is_training = graph.get_tensor_by_name('input/Placeholder_2:0')
+        feature_op = graph.get_tensor_by_name('FCFeat/feature:0')
+
+        output_features = [] 
         for subject_idx, subject_name in  enumerate(subject_names):
-            subject_data = subject_data[subject_idx]
+            sub_data = subjects_data[subject_idx]
             subject_time_features = []
-            print("subject shape: {}".format(subject_data.shape))
-            #for time_idx in range(0, subject_data.shape[0]):
-                #batch_xs = subject_data[time_idx,:]
-            batch_xs = subject_data
+            print("subject shape: {}".format(sub_data.shape))
+            batch_xs = sub_data
             feeds = {
                             x: batch_xs, 
                             dropout_keep_prob: 1.0, 
                             is_training: False
                     }
-            subject_feature = sess.run('FC4/Elu', feed_dict=feeds)
-            #subject_time_features.append(feature)
-            #subject_features = np.vstack(subject_time_features)
-            #print("{:6.5f}".format(subject_feature))
-            #print("{} Feature shape: {}".format(subject_name, subject_feature.shape))
+            sub_feature = sess.run(feature_op, feed_dict=feeds)
+            output_features.append(sub_feature)
 
-            #outFileName = subject_name + '.png'
-            #plot_save_feature(subject_features, outFileName)
-
+    for subject_idx, subject_name in enumerate(subject_names):
+        subject_feat = output_features[subject_idx]
+        plot_feature(subject_feat.transpose(), 
+                     output_dir + '/' + subject_name + '.png')
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

@@ -12,8 +12,10 @@ class eeg_data(object):
         self._epochs_completed = 0
         self._index_in_epoch = 0
 
-    def get_data(self, data_dir, num_data_sec=180, 
-            fake=False, normalization='normalize'):
+
+    def get_data_from_files(self, data_dir, 
+            num_val_samples, num_data_sec=180,
+            fake=False ):
         data = []
         if fake == False:
             os.chdir(data_dir)
@@ -33,11 +35,22 @@ class eeg_data(object):
         # group all data together
         all_data = np.vstack(data)
         np.random.shuffle(all_data)
-        num_val_samples = 500
+        #num_val_samples = 500
         val_data = all_data[:num_val_samples]
         train_data = all_data[num_val_samples:]
 
+        return train_data, val_data
+
+
+
+    def get_data(self, data_dir, num_data_sec=180, 
+            fake=False, normalization='normalize'):
+        num_val_samples = 500
+        train_data, val_data =  self.get_data_from_files(data_dir, 
+                num_val_samples, num_data_sec, fake)
+
         if normalization == 'scaling':
+
             max_val = np.max(train_data)
             min_val = np.min(train_data)
             print("Scaling features ....")
