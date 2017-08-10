@@ -1,13 +1,13 @@
 from datetime import datetime
-from models.fc_freqSum_TiedWeight import build_fc_freqSum_TiedWeight
-from models.fc_freqSum_TiedWeight import build_fc_freqSum_TiedWeight_NoBias
-from models.fc_freqSum_TiedWeight import build_fc_freqSum_TiedWeight_NoDropout
-from models.fc_freqSum_TiedWeight import build_fc_freqSum
-from models.fc_freqSum_TiedWeight import build_fc_freqSum_TiedWeight_Big
-from models.fc_freqSum_TiedWeight import build_fc_freqSum_NoTiedWeight_Big
-from models.fc_freqSum_TiedWeight import build_fc_freqSum_NoTiedWeight_Small
-from models.fc_freqSum_TiedWeight import build_fc_freqSum_NoTiedWeight_Medium
-from models.fc_freqSum_TiedWeight import build_fc_freqSum_NoTiedWeight_Tiny
+from models.fc_freqSum_Models import build_fc_freqSum_TiedWeight
+from models.fc_freqSum_Models import build_fc_freqSum_TiedWeight_NoBias
+from models.fc_freqSum_Models import build_fc_freqSum_TiedWeight_NoDropout
+from models.fc_freqSum_Models import build_fc_freqSum
+from models.fc_freqSum_Models import build_fc_freqSum_TiedWeight_Big
+from models.fc_freqSum_Models import build_fc_freqSum_NoTiedWeight_Big
+from models.fc_freqSum_Models import build_fc_freqSum_NoTiedWeight_Small
+#from models.fc_freqSum_Models import build_fc_freqSum_NoTiedWeight_Medium
+from models.fc_freqSum_Models import build_fc_freqSum_NoTiedWeight_Tiny
 from models.fc_freq_Models import build_fc_freq_4_30_NoTiedWeight_Small
 from models.fc_freq_Models import build_fc_freq_4_30_TiedWeight_Small
 from models.fc_freq_Models import build_fc_freq_5_TiedWeight_Small
@@ -90,7 +90,7 @@ def build_model(model, x, x_dim, dropout_keep_prob, gamma, feature_activation, i
 		print("Doing small model with freqSum model ...")
 		loss, decoded = build_fc_freqFlatten_L1(x, x_dim, dropout_keep_prob)
 	elif model == 'freqSum_TiedWeight_NoBias':
-		loss, decoded, l1_loss = build_fc_freqSum_TiedWeight_NoBias(
+		loss, decoded, l1_loss = build_fc_freqSum_NoBias(
 				x, x_dim, dropout_keep_prob, gamma)
 	elif model == 'freqSum_TiedWeight':
 		loss, decoded, l1_loss = build_fc_freqSum_TiedWeight(
@@ -148,8 +148,6 @@ def build_model(model, x, x_dim, dropout_keep_prob, gamma, feature_activation, i
 		loss, decoded = build_fc_freqSum_L1(x, x_dim, dropout_keep_prob, gamma)
 
 	return loss, decoded, l1_loss
-
-
 
 
 def get_data_path_with_timestamp(model, data_base_dir):

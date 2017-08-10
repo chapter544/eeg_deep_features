@@ -25,7 +25,7 @@ from models.fc_freqSum_TiedWeight import build_fc_freqSum
 from models.fc_freqSum_TiedWeight import build_fc_freqSum_TiedWeight_Big
 from models.fc_freqSum_TiedWeight import build_fc_freqSum_NoTiedWeight_Big
 from models.fc_freqSum_TiedWeight import build_fc_freqSum_NoTiedWeight_Small
-from models.fc_freqSum_TiedWeight import build_fc_freqSum_NoTiedWeight_Medium
+#from models.fc_freqSum_TiedWeight import build_fc_freqSum_NoTiedWeight_Medium
 from models.fc_freqSum_TiedWeight import build_fc_freqSum_NoTiedWeight_Tiny
 
 from models.fc_freq_Models import build_fc_freq_4_30_TiedWeight_Small
@@ -225,10 +225,10 @@ if __name__ == '__main__':
         default=32, help='Mini-batch size')
     parser.add_argument('--learning_rate', type=float , 
         default=1e-6, help='Learning rate')
-    parser.add_argument('--decay_rate', type=float , 
-        default=0.8, help='Decay rate')
-    parser.add_argument('--decay_step', type=float , 
-        default=5000, help='Decay step')
+    #parser.add_argument('--decay_rate', type=float , 
+    #    default=0.8, help='Decay rate')
+    #parser.add_argument('--decay_step', type=float , 
+    #    default=5000, help='Decay step')
     parser.add_argument('--gamma', type=float , 
         default=1e-7, help='Regularization gain')
     parser.add_argument('--test', type=bool, 
