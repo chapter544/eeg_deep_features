@@ -25,3 +25,17 @@ python src/load-and-predict.py --data_base_dir='/home/chuong/EEG-Project/process
 #python src/load-predict.py --data_base_dir='/home/chuong/EEG-Project/processed_data' --trained_model_base_dir='/home/chuong/EEG-Project/trained_models' --model='freqSum_TiedWeight_Big' --trained_model_name='2017-06-24-013834' --data_type='freqSum'
 
 #python src/load-predict.py --data_base_dir='/data1/CHUONG_DATA/ChuongWork/Data4DeepLearning/processed_data' --trained_model_base_dir='/data1/CHUONG_DATA/ChuongWork/Data4DeepLearning/trained_models' --model='freqSumBig' --trained_model_name='2017-06-20-095105' --data_type='freqSum' --meta_file='freqSumBig_epoch_500_2017-06-20-142652.ckpt-78500.meta'
+
+# freq_5_TiedWeight_Big
+#python src/load-and-predict.py --data_base_dir='/home/chuong/EEG-Project/processed_data' --trained_model_base_dir='/home/chuong/EEG-Project/trained_models' --model='freq_5_TiedWeight_Big' --trained_model_name='2017-08-06-100646-relu' --data_type='freqSum' --data_normalization='normalize' --feature_activation='linear'
+
+# freq_5_NoTiedWeight_Small
+#python src/load-and-predict.py --data_base_dir='/home/chuong/EEG-Project/processed_data' --trained_model_base_dir='/home/chuong/EEG-Project/trained_models' --model='freq_5_NoTiedWeight_Small' --trained_model_name='2017-08-03-201116-relu' --data_type='freqSum' --data_normalization='normalize' --feature_activation='linear'
+
+# freq_5_NoTiedWeight_L1_Small
+#python src/load-and-predict.py --data_base_dir='/home/chuong/EEG-Project/processed_data' --trained_model_base_dir='/home/chuong/EEG-Project/trained_models' --model='freq_5_NoTiedWeight_L1_Small' --trained_model_name='2017-08-08-032641-relu' --data_type='freqSum' --data_normalization='normalize' --feature_activation='linear'
+
+
+# freq_5_NoTiedWeight_Big
+python src/load-and-predict.py --data_base_dir='/home/chuong/EEG-Project/processed_data' --trained_model_base_dir='/home/chuong/EEG-Project/trained_models' --model='freq_5_NoTiedWeight_Big' --trained_model_name='2017-08-06-200625-relu' --data_type='freqSum' --data_normalization='normalize' --feature_activation='linear'
+>>>>>>> Adding plot.sh
