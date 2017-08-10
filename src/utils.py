@@ -113,35 +113,31 @@ def build_model(model, x, x_dim, dropout_keep_prob, gamma, feature_activation, i
 			   gamma=gamma, activation=feature_activation)
 	elif model == 'freq_4_30_NoTiedWeight_Small':
 		loss, decoded, l1_loss = build_fc_freq_4_30_NoTiedWeight_Small(
-			   x, x_dim, dropout_keep_prob, 
+			   x, x_dim, dropout_keep_prob, is_training,
 			   gamma=gamma, activation=feature_activation)
 	elif model == 'freq_4_30_TiedWeight_Small':
 		loss, decoded, l1_loss = build_fc_freq_4_30_TiedWeight_Small(
-			   x, x_dim, is_training, dropout_keep_prob, 
+			   x, x_dim, dropout_keep_prob, is_training,
 			   gamma=gamma, activation=feature_activation)
 	elif model == 'freq_5_TiedWeight_Small':
 		loss, decoded, l1_loss = build_fc_freq_5_TiedWeight_Small(
-			   x, x_dim, is_training, dropout_keep_prob, 
+			   x, x_dim, dropout_keep_prob, is_training,
 			   gamma=gamma, activation=feature_activation)
 	elif model == 'freq_5_TiedWeight_Big':
 		loss, decoded, l1_loss = build_fc_freq_5_TiedWeight_Big(
-			   x, x_dim, is_training, dropout_keep_prob, 
+			   x, x_dim, dropout_keep_prob, is_training,
 			   gamma=gamma, activation=feature_activation)
 	elif model == 'freq_5_NoTiedWeight_Big':
 		loss, decoded, l1_loss = build_fc_freq_5_NoTiedWeight_Big(
-			   x, x_dim, is_training, dropout_keep_prob, 
+			   x, x_dim,  dropout_keep_prob, is_training,
 			   gamma=gamma, activation=feature_activation)
 	elif model == 'freq_5_NoTiedWeight_Small':
 		loss, decoded, l1_loss = build_fc_freq_5_NoTiedWeight_Small(
-			   x, x_dim, is_training, dropout_keep_prob, 
+			   x, x_dim,  dropout_keep_prob, is_training,
 			   gamma=gamma, activation=feature_activation)
 	elif model == 'freq_5_NoTiedWeight_L1_Small':
 		loss, decoded, l1_loss = build_fc_freq_5_NoTiedWeight_L1_Small(
-			   x, x_dim, is_training, dropout_keep_prob, 
-			   gamma=gamma, activation=feature_activation)
-	elif model == 'freqSum_NoTiedWeight_Medium':
-		loss, decoded, l1_loss = build_fc_freqSum_NoTiedWeight_Medium(
-			   x, x_dim, dropout_keep_prob, 
+			   x, x_dim,  dropout_keep_prob, is_training,
 			   gamma=gamma, activation=feature_activation)
 	else:
 		print("Doing small L1 model ...")

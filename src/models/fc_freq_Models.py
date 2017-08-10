@@ -678,8 +678,12 @@ def build_fc_freq_5_TiedWeight_Small(
 
 
 
-def build_fc_freq_4_30_TiedWeight_Small(x, x_dim, keep_prob, is_training,
-                                        gamma=1e-7, activation='relu'):
+def build_fc_freq_4_30_TiedWeight_Small(
+        x, x_dim, 
+        keep_prob, 
+        is_training,
+        gamma=1e-7, 
+        activation='elu'):
     # FC1
     with tf.name_scope("FC1"):
         fc1_dim = 512
@@ -797,6 +801,7 @@ def build_fc_freq_4_30_NoTiedWeight_Small(
         x, 
         x_dim, 
         keep_prob, 
+        is_training,
         gamma=1e-7, 
         activation='relu'):
     # FC1
