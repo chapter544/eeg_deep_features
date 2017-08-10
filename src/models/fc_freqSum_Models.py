@@ -265,10 +265,13 @@ def build_fc_freqSum_TiedWeight_VeryBig(x, x_dim, keep_prob, gamma=1e-7):
 
 
 
-def build_fc_freqSum_NoTiedWeight_Small(x, x_dim, keep_prob, gamma=1e-7):
+def build_fc_freqSum_NoTiedWeight_Small(
+        x, x_dim, 
+        keep_prob, gamma=1e-7,
+        activation='elu'):
     # FC1
     with tf.name_scope("FC1"):
-        fc1_dim = 4096
+        fc1_dim = 2048
         W_fc1 = weight_variable([x_dim, fc1_dim])
         b_fc1 = weight_variable([fc1_dim])
         h_fc1 = tf.nn.elu(tf.matmul(x, W_fc1) + b_fc1)
@@ -280,7 +283,7 @@ def build_fc_freqSum_NoTiedWeight_Small(x, x_dim, keep_prob, gamma=1e-7):
     # FC2
     with tf.name_scope("FC2"):
         #fc2_dim = 4096
-        fc2_dim = 1024
+        fc2_dim = 512
         W_fc2 = weight_variable([fc1_dim, fc2_dim])
         b_fc2 = weight_variable([fc2_dim])
         #h_fc2 = tf.nn.elu(tf.matmul(h_fc1_drop, W_fc2) + b_fc2)
@@ -291,16 +294,16 @@ def build_fc_freqSum_NoTiedWeight_Small(x, x_dim, keep_prob, gamma=1e-7):
     #    h_fc2_drop = tf.nn.dropout(h_fc2, keep_prob)
 
     # FC3
-    with tf.name_scope("FC3"):
+    with tf.name_scope("FCFeat"):
         fc3_dim = 64
         W_fc3 = weight_variable([fc2_dim, fc3_dim])
         b_fc3 = weight_variable([fc3_dim])
         #h_fc3 = tf.nn.elu(tf.matmul(h_fc2_drop, W_fc3) + b_fc3)
-        h_fc3 = tf.nn.elu(tf.matmul(h_fc2, W_fc3) + b_fc3)
+        h_fc3 = tf.nn.elu(tf.matmul(h_fc2, W_fc3) + b_fc3, name="feature")
 
 
     with tf.name_scope("FC6"):
-        fc6_dim = 1024
+        fc6_dim = 512
         W_fc6 = weight_variable([fc3_dim, fc6_dim])
         #W_fc6 = tf.transpose(W_fc3)
         b_fc6 = weight_variable([fc6_dim])
@@ -309,7 +312,7 @@ def build_fc_freqSum_NoTiedWeight_Small(x, x_dim, keep_prob, gamma=1e-7):
 
 
     with tf.name_scope("FC7"):
-        fc7_dim = 4096
+        fc7_dim = 2048
         #W_fc7 = tf.transpose(W_fc2)
         W_fc7 = weight_variable([fc6_dim, fc7_dim])
         b_fc7 = weight_variable([fc7_dim])
@@ -329,56 +332,22 @@ def build_fc_freqSum_NoTiedWeight_Small(x, x_dim, keep_prob, gamma=1e-7):
         #h_fc8 = tf.nn.sigmoid(tf.matmul(h_fc7_drop, W_fc8) + b_fc8)
         h_fc8 = tf.nn.elu(tf.matmul(h_fc7, W_fc8) + b_fc8)
 
-    # FC9
-    #with tf.name_scope("FC9"):
-    #    fc9_dim =  512
-    #    W_fc9 = tf.transpose(W_fc4)
-    #    b_fc9 = weight_variable([fc9_dim])
-    #    h_fc9 = tf.nn.elu(tf.matmul(h_fc8, W_fc9) + b_fc9)
-
-
-    # FC10
-    #with tf.name_scope("FC10"):
-    #    fc10_dim = 1024
-    #    W_fc10 = tf.transpose(W_fc3)
-    #    b_fc10 = weight_variable([fc10_dim])
-    #    h_fc10 = tf.nn.elu(tf.matmul(h_fc9, W_fc10) + b_fc10)
-
-    # dropout
-    #with tf.name_scope("Dropout3"):
-    #    h_fc10_drop = tf.nn.dropout(h_fc10, keep_prob)
-
-    # FC11
-    #with tf.name_scope("FC11"):
-    #    fc11_dim = 2048
-    #    W_fc11 = tf.transpose(W_fc2)
-    #    b_fc11 = weight_variable([fc11_dim])
-    #    h_fc11 = tf.nn.elu(tf.matmul(h_fc10_drop, W_fc11) + b_fc11)
-#
-#    # FC12
-#    with tf.name_scope("FC12"):
-#        fc12_dim = x_dim
-#        W_fc12 = tf.transpose(W_fc1)
-#        b_fc12 = weight_variable([fc12_dim])
-#        y = tf.sigmoid(tf.matmul(h_fc11, W_fc12) + b_fc12)
-#
-
     # LOSS 
     with tf.name_scope("loss"):
         y = h_fc8
         #loss = tf.reduce_mean(tf.squared_difference(y, x))
         l2_loss = tf.sqrt(tf.reduce_mean(tf.square(y-x)))
-        entropy_loss = - tf.reduce_mean(x * tf.log(tf.clip_by_value(y, 1e-10, 1.0)))
+        #entropy_loss = - tf.reduce_mean(x * tf.log(tf.clip_by_value(y, 1e-10, 1.0)))
 
-        loss = entropy_loss + l2_loss
-        #loss = l2_loss 
+        #loss = entropy_loss + l2_loss
+        loss = l2_loss 
 
         l1_loss_sum = tf.reduce_sum(tf.abs(W_fc1)) + \
                       tf.reduce_sum(tf.abs(W_fc2)) + \
-                      tf.reduce_sum(tf.abs(W_fc3)) 
-                  #tf.reduce_sum(tf.abs(W_fc4))
-        #          tf.reduce_sum(tf.abs(W_fc5)) +  \
-        #          tf.reduce_sum(tf.abs(W_fc6))
+                      tf.reduce_sum(tf.abs(W_fc3)) + \
+                      tf.reduce_sum(tf.abs(W_fc6)) + \
+                      tf.reduce_sum(tf.abs(W_fc7)) +  \
+                      tf.reduce_sum(tf.abs(W_fc8))
         l1_loss = l1_loss_sum * gamma
         #loss += l1_loss
 
@@ -394,7 +363,7 @@ def build_fc_freqSum_NoTiedWeight_Small(x, x_dim, keep_prob, gamma=1e-7):
         #else:
         #    summary_op = tf.merge_all_summaries()
 
-    return loss, y, entropy_loss
+    return loss, y, l1_loss
 
 
 
