@@ -113,7 +113,10 @@ def main(_):
     meta_file_fullpath = meta_files[-1]
 
     # plot train/val loss
-    plot_train_val_loss(model_path)
+    try:
+        plot_train_val_loss(model_path)
+    except:
+        pass
 
     tf_version = tf.__version__.rpartition('.')[0]
     with tf.Session() as sess:
