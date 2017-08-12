@@ -84,11 +84,11 @@ def main(_):
     if not os.path.exists(model_path):
         os.makedirs(model_path)
 
-    # write model logs for tensorboard
-    logs_path = '/tmp/eeg/logs/' +  \
-                FLAGS.model +  \
+    model_unique_name = FLAGS.model +  \
                 '-' + \
                 datetime.now().strftime('%Y-%m-%d-%H%M%S')
+    # write model logs for tensorboard
+    logs_path = '/tmp/eeg/logs/' +  model_unique_name
     model_file_prefix = model_path + '/' + FLAGS.model + '_epoch_'
 
 
@@ -142,23 +142,18 @@ def main(_):
     saver = tf.train.Saver()
 
     # summary
-    tf_version = tf.__version__.rpartition('.')[0]
-    if parse_version(tf_version) >= parse_version('0.12.0'):
-        summary_op = tf.summary.merge_all()
-    else:
-        summary_op = tf.merge_all_summaries()
+    summary_op = tf.summary.merge_all()
+
+    train_loss = []
+    val_loss = []
 
     with tf.Session() as sess:
-        if parse_version(tf_version) >= parse_version('0.12.0'):
-            sess.run(tf.global_variables_initializer())
-            writer = tf.summary.FileWriter(logs_path, 
-                        graph=tf.get_default_graph())
-        else:
-            sess.run(tf.initialize_all_variables())
-            writer = tf.train.SummaryWriter(logs_path, 
-                        graph=tf.get_default_graph())
+        sess.run(tf.global_variables_initializer())
+        writer = tf.summary.FileWriter(logs_path, 
+                    graph=tf.get_default_graph())
         for epoch in range(training_epoches):
             avg_cost = 0.
+            avg_val_cost = 0.
             batch_idx = 0
             for batch in  eeg.iterate_minibatches(batch_size, shuffle=True):
                 batch_idx += 1
@@ -171,25 +166,31 @@ def main(_):
                 # write log
                 writer.add_summary(summary, step)
 
-                train_loss = loss.eval({
+                train_batch_loss = loss.eval({
                                         x: batch_xs, 
                                         dropout_keep_prob: 1.0, 
                                         is_training: False })
-                avg_cost += train_loss
-                if batch_idx % display_step == 0:
-                    print('  step %6d, loss = %6.5f' % (batch_idx, train_loss))
 
-            eval_loss = loss.eval({
+                train_loss.append(train_batch_loss)
+                avg_cost += train_batch_loss
+                if batch_idx % display_step == 0:
+                    print('  step %6d, loss = %6.5f' % (batch_idx, train_batch_loss))
+
+                val_batch_loss = loss.eval({
                                     x: eeg._valid_data, 
                                     dropout_keep_prob: 1.0,
                                     is_training: False })
+                val_loss.append(val_batch_loss)
+                avg_val_cost += val_batch_loss
+
             l1_loss_network = l1_loss.eval({
                         x: eeg._valid_data, 
                         dropout_keep_prob: 1.0, 
                         is_training: False})
             current_step = tf.train.global_step(sess, global_step)
             avg_epoch_loss = avg_cost / total_batches
-            print('Epoch {:6d}, step {:6d}, l1_loss= {:6.5f}, agv_loss= {:6.5f}, eval_los= {:6.5f}'.format(epoch, current_step, l1_loss_network, avg_epoch_loss, eval_loss))
+            avg_epoch_val_loss = avg_val_cost / total_batches
+            print('Epoch {:6d}, step {:6d}, l1_loss= {:6.5f}, agv_loss= {:6.5f}, eval_los= {:6.5f}'.format(epoch, current_step, l1_loss_network, avg_epoch_loss, avg_epoch_val_loss))
 
             if (epoch+1) % num_epochs_save == 0:
                 model_file_fullpath = model_file_prefix + str(epoch+1) + '_' + \
@@ -200,6 +201,10 @@ def main(_):
                                 sess, model_file_fullpath, 
                                 global_step=current_step)
                 print("Model saved in file: %s" % save_path)
+
+
+    model_fname = model_file_prefix + '.npz'
+    np.savez(model_fname, a=np.array(train_loss), b=np.array(val_loss))
 
 
 

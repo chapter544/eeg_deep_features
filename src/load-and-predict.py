@@ -49,6 +49,20 @@ def plot_feature(data, fName):
     plt.close() 
 
 
+def plot_train_val_loss(data_path, fname):
+    data = np.load(data_path + '/' + fname)
+    train = data['a']
+    valid = data['b']
+    n = np.arange(0, len(train))
+    fig = plt.figure()
+    plt.plot(n, train, '-b', label='train')
+    plt.plot(n, valid, '-r', label='train')
+    plt.ylabel('loss')
+    plt.xlabel('iteration')
+    plt.title(fname)
+    fig.savefig(fname + '.png')
+    plt.close(fig)
+
 
 
 def main(_):
@@ -97,7 +111,9 @@ def main(_):
     meta_files = glob.glob(model_path + '/*.meta')
     meta_files.sort(key=os.path.getmtime)
     meta_file_fullpath = meta_files[-1]
-    
+
+    # plot train/val loss
+    plot_train_val_loss(model_path)
 
     tf_version = tf.__version__.rpartition('.')[0]
     with tf.Session() as sess:
@@ -131,6 +147,7 @@ def main(_):
         subject_feat = output_features[subject_idx]
         plot_feature(subject_feat.transpose(), 
                      output_dir + '/' + subject_name + '.png')
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

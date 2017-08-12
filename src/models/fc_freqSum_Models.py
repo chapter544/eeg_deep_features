@@ -278,7 +278,7 @@ def build_fc_freqSum_NoTiedWeight_BN_Small(
         b_fc1 = weight_variable([fc1_dim])
         h_fc1_bn = tf.nn.elu(batch_norm_wrapper(
                                tf.matmul(x, W_fc1) + b_fc1,
-                               is_training)
+                               is_training))
 
     # dropout
     #with tf.name_scope("Dropout1"):
@@ -290,8 +290,8 @@ def build_fc_freqSum_NoTiedWeight_BN_Small(
         W_fc2 = weight_variable([fc1_dim, fc2_dim])
         b_fc2 = weight_variable([fc2_dim])
         h_fc2_bn = tf.nn.elu(batch_norm_wrapper(
-                               tf.matmul(h_fc1_bn, W_fc2) + b_fc2),
-                               is_training)
+                               tf.matmul(h_fc1_bn, W_fc2) + b_fc2,
+                               is_training))
     # dropout
     #with tf.name_scope("Dropout2"):
     #    h_fc2_drop = tf.nn.dropout(h_fc2, keep_prob)
@@ -310,16 +310,16 @@ def build_fc_freqSum_NoTiedWeight_BN_Small(
         W_fc6 = weight_variable([fc3_dim, fc6_dim])
         b_fc6 = weight_variable([fc6_dim])
         h_fc6_bn = tf.nn.elu(batch_norm_wrapper(
-                               tf.matmul(h_fc3_bn, W_fc6) + b_fc6),
-                               is_training)
+                               tf.matmul(h_fc3_bn, W_fc6) + b_fc6,
+                               is_training))
 
     with tf.name_scope("FC7"):
         fc7_dim = 2048
         W_fc7 = weight_variable([fc6_dim, fc7_dim])
         b_fc7 = weight_variable([fc7_dim])
         h_fc7_bn = tf.nn.elu(batch_norm_wrapper(
-                               tf.matmul(h_fc6_bn, W_fc7) + b_fc7),
-                               is_training)
+                               tf.matmul(h_fc6_bn, W_fc7) + b_fc7,
+                               is_training))
 
     # dropout
     #with tf.name_scope("Dropout7"):
@@ -330,9 +330,7 @@ def build_fc_freqSum_NoTiedWeight_BN_Small(
         fc8_dim = x_dim
         W_fc8 = weight_variable([fc7_dim, fc8_dim])
         b_fc8 = weight_variable([fc8_dim])
-        h_fc8_bn = tf.nn.elu(batch_norm_wrapper(
-                               tf.matmul(h_fc7_bn, W_fc8) + b_fc8),
-                               is_training)
+        h_fc8 = tf.matmul(h_fc7_bn, W_fc8) + b_fc8
 
     # LOSS 
     with tf.name_scope("loss"):

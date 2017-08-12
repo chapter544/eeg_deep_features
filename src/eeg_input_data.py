@@ -45,7 +45,7 @@ class eeg_data(object):
 
     def get_data(self, data_dir, num_data_sec=180, 
             fake=False, normalization='normalize'):
-        num_val_samples = 500
+        num_val_samples = 1000
         train_data, val_data =  self.get_data_from_files(data_dir, 
                 num_val_samples, num_data_sec, fake)
 
