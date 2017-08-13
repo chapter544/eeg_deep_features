@@ -21,18 +21,21 @@
 ###############################################################################
 
 # freq_5_TiedWeight_L1_Small
-python src/load-and-predict.py --data_base_dir='/home/chuong/EEG-Project/processed_data' --trained_model_base_dir='/home/chuong/EEG-Project/trained_models' --model='freq_5_TiedWeight_L1_Small' --trained_model_name='2017-08-10-140210-elu' --data_type='freqSum' --data_normalization='normalize' --feature_activation='linear'
+python src/load-and-predict.py --data_base_dir='/home/chuong/EEG-Project/processed_data' --trained_model_base_dir='/home/chuong/EEG-Project/trained_models' --model='freq_5_NoTiedWeight_L1_Tiny' --trained_model_name='2017-08-13-021143-elu' --data_type='freqSum' --data_normalization='normalize' --feature_activation='linear'
+
+# freq_5_TiedWeight_L1_Small
+#python src/load-and-predict.py --data_base_dir='/home/chuong/EEG-Project/processed_data' --trained_model_base_dir='/home/chuong/EEG-Project/trained_models' --model='freq_5_TiedWeight_L1_Small' --trained_model_name='2017-08-10-140210-elu' --data_type='freqSum' --data_normalization='normalize' --feature_activation='linear'
 
 # freq_5_NoTiedWeight_Big
-python src/load-and-predict.py --data_base_dir='/home/chuong/EEG-Project/processed_data' --trained_model_base_dir='/home/chuong/EEG-Project/trained_models' --model='freq_5_NoTiedWeight_Big' --trained_model_name='2017-08-06-200625-relu' --data_type='freqSum' --data_normalization='normalize' --feature_activation='linear'
+#python src/load-and-predict.py --data_base_dir='/home/chuong/EEG-Project/processed_data' --trained_model_base_dir='/home/chuong/EEG-Project/trained_models' --model='freq_5_NoTiedWeight_Big' --trained_model_name='2017-08-06-200625-relu' --data_type='freqSum' --data_normalization='normalize' --feature_activation='linear'
 
 
 # freq_5_NoTiedWeight_Small
-python src/load-and-predict.py --data_base_dir='/home/chuong/EEG-Project/processed_data' --trained_model_base_dir='/home/chuong/EEG-Project/trained_models' --model='freq_5_NoTiedWeight_Small' --trained_model_name='2017-08-10-130927-elu' --data_type='freqSum' --data_normalization='normalize' --feature_activation='linear'
+#python src/load-and-predict.py --data_base_dir='/home/chuong/EEG-Project/processed_data' --trained_model_base_dir='/home/chuong/EEG-Project/trained_models' --model='freq_5_NoTiedWeight_Small' --trained_model_name='2017-08-10-130927-elu' --data_type='freqSum' --data_normalization='normalize' --feature_activation='linear'
 
 # freq_5_NoTiedWeight_L1_Small
-python src/load-and-predict.py --data_base_dir='/home/chuong/EEG-Project/processed_data' --trained_model_base_dir='/home/chuong/EEG-Project/trained_models' --model='freq_5_NoTiedWeight_L1_Small' --trained_model_name='2017-08-08-032641-relu' --data_type='freqSum' --data_normalization='normalize' --feature_activation='linear'
+#python src/load-and-predict.py --data_base_dir='/home/chuong/EEG-Project/processed_data' --trained_model_base_dir='/home/chuong/EEG-Project/trained_models' --model='freq_5_NoTiedWeight_L1_Small' --trained_model_name='2017-08-08-032641-relu' --data_type='freqSum' --data_normalization='normalize' --feature_activation='linear'
 
 
 # freq_5_TiedWeight_Big
-python src/load-and-predict.py --data_base_dir='/home/chuong/EEG-Project/processed_data' --trained_model_base_dir='/home/chuong/EEG-Project/trained_models' --model='freq_5_TiedWeight_Big' --trained_model_name='2017-08-06-100646-relu' --data_type='freqSum' --data_normalization='normalize' --feature_activation='linear'
+#python src/load-and-predict.py --data_base_dir='/home/chuong/EEG-Project/processed_data' --trained_model_base_dir='/home/chuong/EEG-Project/trained_models' --model='freq_5_TiedWeight_Big' --trained_model_name='2017-08-06-100646-relu' --data_type='freqSum' --data_normalization='normalize' --feature_activation='linear'

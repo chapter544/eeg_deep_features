@@ -114,7 +114,8 @@ def main(_):
 
     # plot train/val loss
     try:
-        plot_train_val_loss(model_path)
+        plot_train_val_loss(model_path,
+                FLAGS.trained_model_name + '_epoch_.npz')
     except:
         pass
 

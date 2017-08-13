@@ -35,7 +35,6 @@ class eeg_data(object):
         # group all data together
         all_data = np.vstack(data)
         np.random.shuffle(all_data)
-        #num_val_samples = 500
         val_data = all_data[:num_val_samples]
         train_data = all_data[num_val_samples:]
 
@@ -125,8 +124,7 @@ class eeg_data(object):
         if self._epochs_completed == 0 and start == 0 and shuffle:
             perm0 = np.arange(self._num_examples)
             np.random.shuffle(perm0)
-            self._datac = self._train_data[perm0]
-            #self._labels = self._labels[perm0]
+            self._train_data = self._train_data[perm0]
 
         if start + batch_size > self._num_examples:
             self._epochs_completed += 1

@@ -14,6 +14,7 @@ from models.fc_freq_Models import build_fc_freq_4_30_TiedWeight_Small
 from models.fc_freq_Models import build_fc_freq_5_TiedWeight_Small
 from models.fc_freq_Models import build_fc_freq_5_NoTiedWeight_Small
 from models.fc_freq_Models import build_fc_freq_5_NoTiedWeight_L1_Small
+from models.fc_freq_Models import build_fc_freq_5_NoTiedWeight_L1_Tiny
 from models.fc_freq_Models import build_fc_freq_5_TiedWeight_L1_Small
 from models.fc_freq_Models import build_fc_freq_5_TiedWeight_L1_Tiny
 from models.fc_freq_Models import build_fc_freq_5_TiedWeight_Big
@@ -21,6 +22,7 @@ from models.fc_freq_Models import build_fc_freq_5_NoTiedWeight_Big
 
 
 from models.fc_freq_BN_Models import build_fc_freq_5_NoTiedWeight_L1_BN_Small
+from models.fc_freq_BN_Models import build_fc_freq_5_NoTiedWeight_L1_BN_Tiny
 
 def get_input_data_path(model, data_base_dir):
 	if model == "big":
@@ -85,10 +87,22 @@ def get_input_data_path(model, data_base_dir):
 		# this is freq_5
 		sub_volumes_dir = '/data1/volumes_freq_5'
 		#sub_volumes_dir = '/home/chuong/volumes_freq_5'
+	elif model == "freq_5_TiedWeight_L1_BN_Tiny":
+		# this is freq_5
+		#sub_volumes_dir = '/data1/volumes_freq_5'
+		sub_volumes_dir = '/home/chuong/volumes_freq_5'
 	elif model == "freq_5_NoTiedWeight_L1_BN_Small":
 		# this is freq_5
 		sub_volumes_dir = '/data1/volumes_freq_5'
 		#sub_volumes_dir = '/home/chuong/volumes_freq_5'
+	elif model == "freq_5_NoTiedWeight_L1_BN_Tiny":
+		# this is freq_5
+		#sub_volumes_dir = '/data1/volumes_freq_5'
+		sub_volumes_dir = '/home/chuong/volumes_freq_5'
+	elif model == "freq_5_NoTiedWeight_L1_Tiny":
+		# this is freq_5
+		#sub_volumes_dir = '/data1/volumes_freq_5'
+		sub_volumes_dir = '/home/chuong/volumes_freq_5'
 	elif model == "freq_5_TiedWeight_L1_Tiny":
 		# this is freq_5
 		#sub_volumes_dir = '/data1/volumes_freq_5'
@@ -175,6 +189,14 @@ def build_model(model, x, x_dim,
 			   gamma=gamma, activation=feature_activation)
 	elif model == 'freq_5_NoTiedWeight_L1_BN_Small':
 		loss, decoded, l1_loss = build_fc_freq_5_NoTiedWeight_L1_BN_Small(
+			   x, x_dim,  dropout_keep_prob, is_training,
+			   gamma=gamma, activation=feature_activation)
+	elif model == 'freq_5_NoTiedWeight_L1_BN_Tiny':
+		loss, decoded, l1_loss = build_fc_freq_5_NoTiedWeight_L1_BN_Tiny(
+			   x, x_dim,  dropout_keep_prob, is_training,
+			   gamma=gamma, activation=feature_activation)
+	elif model == 'freq_5_NoTiedWeight_L1_Tiny':
+		loss, decoded, l1_loss = build_fc_freq_5_NoTiedWeight_L1_Tiny(
 			   x, x_dim,  dropout_keep_prob, is_training,
 			   gamma=gamma, activation=feature_activation)
 	elif model == 'freq_5_TiedWeight_L1_Tiny':
