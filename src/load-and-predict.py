@@ -50,7 +50,9 @@ def plot_feature(data, fName):
 
 
 def plot_train_val_loss(data_path, fname):
-    data = np.load(data_path + '/' + fname)
+    data_fname = data_path + '/' + fname
+    print("Loading data {}".format(data_fname))
+    data = np.load(data_fname)
     train = data['a']
     valid = data['b']
     n = np.arange(0, len(train))
@@ -60,7 +62,7 @@ def plot_train_val_loss(data_path, fname):
     plt.ylabel('loss')
     plt.xlabel('iteration')
     plt.title(fname)
-    fig.savefig(fname + '.png')
+    fig.savefig(data_fname + '.png')
     plt.close(fig)
 
 
@@ -114,8 +116,7 @@ def main(_):
 
     # plot train/val loss
     try:
-        plot_train_val_loss(model_path,
-                FLAGS.trained_model_name + '_epoch_.npz')
+        plot_train_val_loss(model_path, FLAGS.model + '_epoch_.npz')
     except:
         pass
 

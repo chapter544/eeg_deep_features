@@ -68,6 +68,11 @@ class eeg_data(object):
             print("Normalizing features ....")
             mean_data = np.mean(train_data, axis=0)
             std_data = np.std(train_data, axis=0)
+
+            # Fake std_data is 1
+            #std_data = 100 * np.ones(len(mean_data))
+
+
             np.savez('normalization.npz', mean_val=mean_data, std_val=std_data)
             train_data -= mean_data
             train_data /=  std_data
