@@ -18,6 +18,41 @@ def bias_variable(shape):
 #    return tf.nn.max_pool(x, ksize, strides, padding=padding)
 
 
+def dense_layer(X, 
+        dims, 
+        scope, 
+        activation='elu', 
+        use_bn=False, bn_first=True,
+        is_training=False):
+    with tf.name_scope(scope):
+        in_dim, out_dim = dims
+        W = weight_variable([in_dim, out_dim])
+        b = weight_variable([out_dim])
+        h = tf.matmul(X, W) + b
+
+        if bn_first == True:
+            if use_bn == True:
+                h = batch_norm_contrib(h, is_training)
+
+            if activation == 'elu':
+                out = tf.nn.elu(h)
+            else:
+                out = tf.nn.relu(h)
+        else:
+            if activation == 'elu':
+                h_act = tf.nn.elu(h)
+            else:
+                h_act = tf.nn.elu(h)
+
+            if use_bn == True:
+                out = batch_norm_contrib(h_act, is_training)
+    return out
+
+
+
+
+
+
 def batch_norm_wrapper(inputs, is_training, decay=0.999):
     epsilon = 1e-6
     scale = tf.Variable(tf.ones([inputs.get_shape()[-1]]))
