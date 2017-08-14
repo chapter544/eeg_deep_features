@@ -23,6 +23,7 @@ from models.fc_freq_Models import build_fc_freq_5_NoTiedWeight_Big
 
 from models.fc_freq_BN_Models import build_fc_freq_5_NoTiedWeight_L1_BN_Small
 from models.fc_freq_BN_Models import build_fc_freq_5_NoTiedWeight_L1_BN_Tiny
+from models.fc_freq_BN_Models import build_fc_freq_4_30_NoTiedWeight_L1_BN_Tiny
 
 def get_input_data_path(model, data_base_dir):
 	if model == "big":

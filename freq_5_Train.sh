@@ -19,7 +19,7 @@
 
 
 # freq 5 + NO tied weight + L1 + TINY  -- REVERSE BN
-python src/auto-encoder.py --data_base_dir='/home/chuong/volumes_freq_5' --trained_models_base_dir='/home/chuong/EEG-Project/trained_models' --model='freq_5_NoTiedWeight_L1_Tiny' --data_type='freqSum' --batch_size=1000 --num_epochs=600 --learning_rate=0.0003 --num_epochs_save=600 --gamma=1e-5 --data_normalization='normalize' --feature_activation='elu'
+python src/auto-encoder.py --data_base_dir='/home/chuong/volumes_freq_5' --trained_models_base_dir='/home/chuong/EEG-Project/trained_models' --model='freq_5_NoTiedWeight_L1_BN_Tiny' --data_type='freqSum' --batch_size=1000 --num_epochs=400 --learning_rate=0.0003 --num_epochs_save=400 --gamma=1e-5 --data_normalization='normalize' --feature_activation='elu'
 
 
 # freq 5 + NO tied weight + L1 + SMALL + BN
