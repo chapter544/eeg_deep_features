@@ -31,8 +31,8 @@ def build_fc_freq_5_BN_Tiny(
             use_bn=True, bn_first=True,
             is_training=is_training)
     # dropout
-    with tf.name_scope("Dropout1"):
-        h1 = tf.nn.dropout(h1, keep_prob)
+    #with tf.name_scope("Dropout1"):
+    #    h = tf.nn.dropout(h, keep_prob)
 
     #FC2
     fc2_dim = 300
@@ -41,8 +41,8 @@ def build_fc_freq_5_BN_Tiny(
             use_bn=True, bn_first=True,
             is_training=is_training)
     # dropout
-    with tf.name_scope("Dropout2"):
-        h = tf.nn.dropout(h, keep_prob)
+    #with tf.name_scope("Dropout2"):
+    #    h = tf.nn.dropout(h, keep_prob)
 
     #FC3
     fc3_dim = 100
@@ -51,8 +51,8 @@ def build_fc_freq_5_BN_Tiny(
             use_bn=True, bn_first=True,
             is_training=is_training)
     # dropout
-    with tf.name_scope("Dropout3"):
-        h = tf.nn.dropout(h, keep_prob)
+    #with tf.name_scope("Dropout3"):
+    #    h = tf.nn.dropout(h, keep_prob)
 
     # FC4
     with tf.name_scope("FCFeat"):
@@ -68,8 +68,8 @@ def build_fc_freq_5_BN_Tiny(
             use_bn=True, bn_first=True,
             is_training=is_training)
     # dropout
-    with tf.name_scope("Dropout5"):
-        h = tf.nn.dropout(h, keep_prob)
+    #with tf.name_scope("Dropout5"):
+    #    h = tf.nn.dropout(h, keep_prob)
 
     #FC6
     fc6_dim = 300
@@ -88,15 +88,15 @@ def build_fc_freq_5_BN_Tiny(
             use_bn=True, bn_first=True,
             is_training=is_training)
     # dropout
-    with tf.name_scope("Dropout7"):
-        h = tf.nn.dropout(h, keep_prob)
+    #with tf.name_scope("Dropout7"):
+    #    h = tf.nn.dropout(h, keep_prob)
 
     #FC8
     with tf.name_scope("FC8"):
         fc8_dim = x_dim
         W_fc8 = weight_variable([fc7_dim, fc8_dim])
         b_fc8 = weight_variable([fc8_dim])
-        h_fc8 = tf.matmul(h_fc7_bn, W_fc8) + b_fc8
+        h_fc8 = tf.matmul(h, W_fc8) + b_fc8
 
     # LOSS 
     with tf.name_scope("loss"):
@@ -106,7 +106,7 @@ def build_fc_freq_5_BN_Tiny(
         tf.summary.scalar("loss", loss)
         summary_op = tf.summary.merge_all()
 
-    return loss, y, l1_loss
+    return loss, y, 0
 
 
 

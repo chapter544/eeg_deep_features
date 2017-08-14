@@ -10,6 +10,16 @@ def bias_variable(shape):
     initial = tf.constant(0.01, shape=shape)
     return tf.Variable(initial)
 
+def batch_norm_contrib(x, is_training):
+    h = tf.contrib.layers.batch_norm(x, 
+                    center=True, scale=True, 
+                    is_training=is_training)
+    return h
+
+
+
+
+
 
 #def conv2d(x, W, strides=strides, padding=padding):
 #    return tf.nn.conv2d(x, W, strides=strides, padding=padding)
@@ -32,7 +42,8 @@ def dense_layer(X,
 
         if bn_first == True:
             if use_bn == True:
-                h = batch_norm_contrib(h, is_training)
+                #h = batch_norm_contrib(h, is_training)
+                h = batch_norm_wrapper(h, is_training)
 
             if activation == 'elu':
                 out = tf.nn.elu(h)
@@ -45,7 +56,7 @@ def dense_layer(X,
                 h_act = tf.nn.elu(h)
 
             if use_bn == True:
-                out = batch_norm_contrib(h_act, is_training)
+                out = batch_norm_wrapper(h_act, is_training)
     return out
 
 
