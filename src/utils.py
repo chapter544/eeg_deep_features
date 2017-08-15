@@ -30,10 +30,10 @@ from models.fc_freq_BN_Models import build_fc_freq_5_NoTiedWeight_BN_Wrapper_Tin
 from models.fc_freq_BN_Models import build_fc_freq_5_NoTiedWeight_BN_Contrib_Behind_Tiny
 from models.fc_freq_BN_Models import build_fc_freq_5_NoTiedWeight_BN_Wrapper_Behind_Tiny
 
-from models.fc_freq_BN_Models import build_fc_freq_4_30_NoTiedWeight_BN_Contrib_Tiny
+#from models.fc_freq_BN_Models import build_fc_freq_4_30_NoTiedWeight_BN_Contrib_Tiny
 from models.fc_freq_BN_Models import build_fc_freq_4_30_NoTiedWeight_BN_Wrapper_Tiny
 #from models.fc_freq_BN_Models import build_fc_freq_4_30_NoTiedWeight_BN_Contrib_Behind_Tiny
-#from models.fc_freq_BN_Models import build_fc_freq_4_30_NoTiedWeight_BN_Wrapper_Behind_Tiny
+from models.fc_freq_BN_Models import build_fc_freq_4_30_NoTiedWeight_BN_Wrapper_Behind_Tiny
 
 
 #from models.fc_freq_Models import build_fc_freq_5_NoTiedWeight_BN_Tiny
@@ -127,8 +127,12 @@ def get_input_data_path(model, data_base_dir):
 		sub_volumes_dir = '/home/chuong/volumes_freq_5'
 	elif model == "freq_5_NoTiedWeight_BN_Wrapper_Behind_Tiny":
 		# this is freq_5
-		#sub_volumes_dir = '/data1/volumes_freq_5'
-		sub_volumes_dir = '/home/chuong/volumes_freq_5'
+		sub_volumes_dir = '/data1/volumes_freq_5'
+		#sub_volumes_dir = '/home/chuong/volumes_freq_5'
+	elif model == "freq_4_30_NoTiedWeight_BN_Wrapper_Behind_Tiny":
+		# this is freq_5
+		sub_volumes_dir = '/data1/volumes_freq_4_30'
+		#sub_volumes_dir = '/home/chuong/volumes_freq_5'
 	elif model == "freq_5_NoTiedWeight_L1_Tiny":
 		# this is freq_5
 		#sub_volumes_dir = '/data1/volumes_freq_5'
@@ -243,6 +247,10 @@ def build_model(model, x, x_dim,
 			   gamma=gamma, activation=feature_activation)
 	elif model == 'freq_5_NoTiedWeight_BN_Wrapper_Behind_Tiny':
 		loss, decoded, l1_loss = build_fc_freq_5_NoTiedWeight_BN_Wrapper_Behind_Tiny(
+			   x, x_dim,  dropout_keep_prob, is_training,
+			   gamma=gamma, activation=feature_activation)
+	elif model == 'freq_4_30_NoTiedWeight_BN_Wrapper_Behind_Tiny':
+		loss, decoded, l1_loss = build_fc_freq_4_30_NoTiedWeight_BN_Wrapper_Behind_Tiny(
 			   x, x_dim,  dropout_keep_prob, is_training,
 			   gamma=gamma, activation=feature_activation)
 	elif model == 'freq_5_NoTiedWeight_L1_Tiny':

@@ -96,8 +96,12 @@ def main(_):
     global_step = tf.Variable(0, name="global_step", trainable=False)
 
     # OPTIMIZER
+
+    boundaries = [300, 600]
+    values = [1e-3, 1e-4, 1e-5]
+    lr_rate = tf.train.piecewise_constant(global_step, boundaries, values)
      # AdamOptimizer
-    lr_rate = FLAGS.learning_rate
+    #lr_rate = FLAGS.learning_rate
     train_step = tf.train.AdamOptimizer(
                     learning_rate=lr_rate).\
                     minimize(loss, global_step=global_step) 
