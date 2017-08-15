@@ -2,12 +2,12 @@ import tensorflow as tf
 import numpy as np
 
 def weight_variable(shape):
-    initial = tf.truncated_normal(shape, stddev=0.01)
-    #initial = tf.truncated_normal(shape, stddev=0.05)
+    #initial = tf.truncated_normal(shape, stddev=0.01)
+    initial = tf.truncated_normal(shape, stddev=0.03)
     return tf.Variable(initial)
 
 def bias_variable(shape): 
-    initial = tf.constant(0.01, shape=shape)
+    initial = tf.constant(0.00, shape=shape)
     return tf.Variable(initial)
 
 def batch_norm_contrib(x, is_training):

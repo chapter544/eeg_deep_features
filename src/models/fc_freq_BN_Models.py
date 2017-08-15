@@ -37,7 +37,7 @@ def build_fc_freq_4_30_NoTiedWeight_BN_Wrapper_Behind_Tiny(
         activation='relu'):
     # FC1
     with tf.name_scope("FC1"):
-        fc1_dim = 500
+        fc1_dim = 300
         W_fc1 = weight_variable([x_dim, fc1_dim])
         b_fc1 = weight_variable([fc1_dim])
         h_fc1 = tf.nn.elu(tf.matmul(x, W_fc1) + b_fc1)
@@ -75,7 +75,7 @@ def build_fc_freq_4_30_NoTiedWeight_BN_Wrapper_Behind_Tiny(
         W_fc3 = weight_variable([fc2_dim, fc3_dim])
         b_fc3 = weight_variable([fc3_dim])
         #h_fc3 = tf.nn.elu(tf.matmul(h_fc2_drop, W_fc3) + b_fc3)
-        h_fc3 = tf.nn.elu(tf.matmul(h_fc2_bn, W_fc3) + b_fc3)
+        h_fc3 = tf.nn.elu(tf.matmul(h_fc2a_bn, W_fc3) + b_fc3)
         h_fc3_bn = batch_norm_wrapper(h_fc3, is_training)
 
     # FC4
@@ -102,14 +102,14 @@ def build_fc_freq_4_30_NoTiedWeight_BN_Wrapper_Behind_Tiny(
         W_fc6 = weight_variable([fc5_dim, fc6_dim])
         b_fc6 = weight_variable([fc6_dim])
         h_fc6 = tf.nn.elu(tf.matmul(h_fc5_bn, W_fc6) + b_fc6)
-        h_fc6_bn = batch_norm_contrib(h_fc6, is_training)
+        h_fc6_bn = batch_norm_wrapper(h_fc6, is_training)
 
     with tf.name_scope("FC6a"):
         fc6a_dim = 300
         W_fc6a = weight_variable([fc6_dim, fc6a_dim])
         b_fc6a = weight_variable([fc6a_dim])
         h_fc6a = tf.nn.elu(tf.matmul(h_fc6_bn, W_fc6a) + b_fc6a)
-        h_fc6a_bn = batch_norm_contrib(h_fc6a, is_training)
+        h_fc6a_bn = batch_norm_wrapper(h_fc6a, is_training)
 
 
     # dropout
@@ -117,23 +117,24 @@ def build_fc_freq_4_30_NoTiedWeight_BN_Wrapper_Behind_Tiny(
     #    h_fc6_drop = tf.nn.dropout(h_fc6_bn, keep_prob)
 
     with tf.name_scope("FC7"):
-        fc7_dim = 500
+        fc7_dim = 300
         W_fc7 = weight_variable([fc6_dim, fc7_dim])
         b_fc7 = weight_variable([fc7_dim])
         #h_fc7 = tf.nn.elu(tf.matmul(h_fc6_drop, W_fc7) + b_fc7)
-        h_fc7 = tf.nn.elu(tf.matmul(h_fc6_bn, W_fc7) + b_fc7)
-        h_fc7_bn = batch_norm_contrib(h_fc7, is_training)
+        h_fc7 = tf.nn.elu(tf.matmul(h_fc6a_bn, W_fc7) + b_fc7)
+        h_fc7_bn = batch_norm_wrapper(h_fc7, is_training)
 
     # dropout
-    with tf.name_scope("Dropout7"):
-        h_fc7_drop = tf.nn.dropout(h_fc7_bn, keep_prob)
+    #with tf.name_scope("Dropout7"):
+    #    h_fc7_drop = tf.nn.dropout(h_fc7_bn, keep_prob)
 
     # FC8
     with tf.name_scope("FC8"):
         fc8_dim = x_dim
         W_fc8 = weight_variable([fc7_dim, fc8_dim])
         b_fc8 = weight_variable([fc8_dim])
-        h_fc8 = tf.matmul(h_fc7_drop, W_fc8) + b_fc8
+        #h_fc8 = tf.matmul(h_fc7_drop, W_fc8) + b_fc8
+        h_fc8 = tf.matmul(h_fc7_bn, W_fc8) + b_fc8
 
     # LOSS 
     with tf.name_scope("loss"):
