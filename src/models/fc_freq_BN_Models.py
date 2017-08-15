@@ -379,7 +379,7 @@ def build_fc_freq_5_NoTiedWeight_BN_Wrapper_Behind_Tiny (
         activation='relu'):
     # FC1
     with tf.name_scope("FC1"):
-        fc1_dim = 400
+        fc1_dim = 500
         W_fc1 = weight_variable([x_dim, fc1_dim])
         b_fc1 = weight_variable([fc1_dim])
         h_fc1_bn = batch_norm_wrapper(
@@ -392,7 +392,7 @@ def build_fc_freq_5_NoTiedWeight_BN_Wrapper_Behind_Tiny (
 
     # FC2
     with tf.name_scope("FC2"):
-        fc2_dim = 200
+        fc2_dim = 250
         W_fc2 = weight_variable([fc1_dim, fc2_dim])
         b_fc2 = weight_variable([fc2_dim])
         h_fc2_bn = batch_norm_wrapper(
@@ -404,7 +404,7 @@ def build_fc_freq_5_NoTiedWeight_BN_Wrapper_Behind_Tiny (
 
     # FC3
     with tf.name_scope("FC3"):
-        fc3_dim = 100
+        fc3_dim = 125
         W_fc3 = weight_variable([fc2_dim, fc3_dim])
         b_fc3 = weight_variable([fc3_dim])
         h_fc3_bn = batch_norm_wrapper(
@@ -416,12 +416,13 @@ def build_fc_freq_5_NoTiedWeight_BN_Wrapper_Behind_Tiny (
         fc4_dim = 64
         W_fc4 = weight_variable([fc3_dim, fc4_dim])
         b_fc4 = weight_variable([fc4_dim])
-        h_fc4_bn = tf.nn.elu(tf.matmul(h_fc3_bn, W_fc4) + b_fc4, 
-                             name="feature")
+        h_fc4 = batch_norm_wrapper(
+                    tf.matmul(h_fc3_bn, W_fc4) + b_fc4, is_training)
+        h_fc4_bn = tf.nn.elu(h_fc4, name="feature")
 
     # FC5
     with tf.name_scope("FC5"):
-        fc5_dim = 100
+        fc5_dim = 125
         W_fc5 = weight_variable([fc4_dim, fc5_dim])
         b_fc5 = weight_variable([fc5_dim])
         h_fc5_bn = batch_norm_wrapper(
@@ -434,7 +435,7 @@ def build_fc_freq_5_NoTiedWeight_BN_Wrapper_Behind_Tiny (
 
 
     with tf.name_scope("FC6"):
-        fc6_dim = 200
+        fc6_dim = 250
         W_fc6 = weight_variable([fc5_dim, fc6_dim])
         b_fc6 = weight_variable([fc6_dim])
         h_fc6_bn = batch_norm_wrapper(
@@ -446,7 +447,7 @@ def build_fc_freq_5_NoTiedWeight_BN_Wrapper_Behind_Tiny (
         h_fc6_drop = tf.nn.dropout(h_fc6_bn, keep_prob)
 
     with tf.name_scope("FC7"):
-        fc7_dim = 400
+        fc7_dim = 500
         W_fc7 = weight_variable([fc6_dim, fc7_dim])
         b_fc7 = weight_variable([fc7_dim])
         h_fc7_bn = batch_norm_wrapper(
@@ -538,10 +539,10 @@ def build_fc_freq_5_NoTiedWeight_BN_Wrapper_Tiny (
         fc4_dim = 64
         W_fc4 = weight_variable([fc3_dim, fc4_dim])
         b_fc4 = weight_variable([fc4_dim])
-
-        h_fc4_bn = tf.nn.elu(batch_norm_wrapper(
-                    tf.matmul(h_fc3_bn, W_fc4) + b_fc4,
-                    is_training), name="feature")
+        h_fc4_bn = batch_norm_wrapper(
+                    tf.nn.elu(
+                        tf.matmul(h_fc3_bn, W_fc4) + b_fc4,
+                        name="feature"), is_training)
 
     # FC5
     with tf.name_scope("FC5"):
@@ -623,7 +624,7 @@ def build_fc_freq_5_NoTiedWeight_BN_Contrib_Behind_Tiny (
         activation='relu'):
     # FC1
     with tf.name_scope("FC1"):
-        fc1_dim = 400
+        fc1_dim = 500
         W_fc1 = weight_variable([x_dim, fc1_dim])
         b_fc1 = weight_variable([fc1_dim])
         h_fc1_bn = batch_norm_contrib(
@@ -636,7 +637,7 @@ def build_fc_freq_5_NoTiedWeight_BN_Contrib_Behind_Tiny (
 
     # FC2
     with tf.name_scope("FC2"):
-        fc2_dim = 200
+        fc2_dim = 300
         W_fc2 = weight_variable([fc1_dim, fc2_dim])
         b_fc2 = weight_variable([fc2_dim])
         h_fc2_bn = batch_norm_contrib(
@@ -660,9 +661,8 @@ def build_fc_freq_5_NoTiedWeight_BN_Contrib_Behind_Tiny (
         fc4_dim = 64
         W_fc4 = weight_variable([fc3_dim, fc4_dim])
         b_fc4 = weight_variable([fc4_dim])
-
-        h_fc4_bn = tf.nn.elu(tf.matmul(h_fc3_bn, W_fc4) + b_fc4,
-                             name="feature")
+        h_fc4 = tf.matmul(h_fc3_bn, W_fc4) + b_fc4
+        h_fc4_bn = tf.nn.elu(h_fc4, name="feature")
 
     # FC5
     with tf.name_scope("FC5"):
@@ -679,7 +679,7 @@ def build_fc_freq_5_NoTiedWeight_BN_Contrib_Behind_Tiny (
 
 
     with tf.name_scope("FC6"):
-        fc6_dim = 200
+        fc6_dim = 300
         W_fc6 = weight_variable([fc5_dim, fc6_dim])
         b_fc6 = weight_variable([fc6_dim])
         h_fc6_bn = batch_norm_contrib(
@@ -691,7 +691,7 @@ def build_fc_freq_5_NoTiedWeight_BN_Contrib_Behind_Tiny (
         h_fc6_drop = tf.nn.dropout(h_fc6_bn, keep_prob)
 
     with tf.name_scope("FC7"):
-        fc7_dim = 400
+        fc7_dim = 500
         W_fc7 = weight_variable([fc6_dim, fc7_dim])
         b_fc7 = weight_variable([fc7_dim])
         h_fc7_bn = batch_norm_contrib(

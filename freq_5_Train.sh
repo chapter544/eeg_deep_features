@@ -26,7 +26,7 @@
 
 
 # freq 5 + NO tied weight + L1 + SMALL + BN
-python src/auto-encoder.py --data_base_dir='/home/chuong/volumes_freq_5' --trained_models_base_dir='/home/chuong/EEG-Project/trained_models' --model='freq_5_NoTiedWeight_BN_Wrapper_Behind_Tiny' --data_type='freqSum' --batch_size=1000 --num_epochs=400 --learning_rate=0.0005 --num_epochs_save=400 --gamma=1e-7 --data_normalization='normalize' --feature_activation='elu'
+python src/auto-encoder.py --data_base_dir='/home/chuong/volumes_freq_5' --trained_models_base_dir='/home/chuong/EEG-Project/trained_models' --model='freq_5_NoTiedWeight_BN_Wrapper_Behind_Tiny' --data_type='freqSum' --batch_size=1000 --num_epochs=400 --learning_rate=0.0007 --num_epochs_save=400 --gamma=1e-7 --data_normalization='normalize' --feature_activation='elu'
 
 # freq 5 + NO tied weight + L1 + SMALL
 #python src/auto-encoder.py --data_base_dir='/home/chuong/volumes_freq_5' --trained_models_base_dir='/home/chuong/EEG-Project/trained_models' --model='freq_5_NoTiedWeight_L1_Small' --data_type='freqSum' --batch_size=128 --num_epochs=200 --learning_rate=1e-4 --num_epochs_save=100 --gamma=1e-8 --data_normalization='normalize' --feature_activation='elu'
