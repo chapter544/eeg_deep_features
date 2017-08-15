@@ -30,13 +30,14 @@ def build_fc_freq_5_BN_Tiny(
             activation='elu',
             use_bn=True, bn_first=True,
             is_training=is_training)
+
     # dropout
-    #with tf.name_scope("Dropout1"):
-    #    h = tf.nn.dropout(h, keep_prob)
+    with tf.name_scope("Dropout1"):
+        h1_drop = tf.nn.dropout(h, keep_prob)
 
     #FC2
     fc2_dim = 300
-    h = dense_layer(h, [fc1_dim, fc2_dim], "FC2",
+    h = dense_layer(h1_drop, [fc1_dim, fc2_dim], "FC2",
             activation='elu',
             use_bn=True, bn_first=True,
             is_training=is_training)
@@ -77,13 +78,14 @@ def build_fc_freq_5_BN_Tiny(
             activation='elu',
             use_bn=True, bn_first=True,
             is_training=is_training)
+
     # dropout
     with tf.name_scope("Dropout6"):
-        h = tf.nn.dropout(h, keep_prob)
+        h6_drop = tf.nn.dropout(h, keep_prob)
 
     #FC7
     fc7_dim = 500
-    h = dense_layer(h, [fc6_dim, fc7_dim], "FC6",
+    h = dense_layer(h6_drop, [fc6_dim, fc7_dim], "FC7",
             activation='elu',
             use_bn=True, bn_first=True,
             is_training=is_training)

@@ -135,19 +135,19 @@ def build_fc_freq_5_NoTiedWeight_L1_Tiny (
         activation='relu'):
     # FC1
     with tf.name_scope("FC1"):
-        fc1_dim = 500
+        fc1_dim = 300
         W_fc1 = weight_variable([x_dim, fc1_dim])
         b_fc1 = weight_variable([fc1_dim])
         h_fc1 = tf.nn.elu(tf.matmul(x, W_fc1) + b_fc1)
         h_fc1_bn = batch_norm_wrapper(h_fc1, is_training)
 
     # dropout
-    #with tf.name_scope("Dropout1"):
-    #    h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
+    with tf.name_scope("Dropout1"):
+        h_fc1_bn = tf.nn.dropout(h_fc1_bn, keep_prob)
 
     # FC2
     with tf.name_scope("FC2"):
-        fc2_dim = 300
+        fc2_dim = 200
         W_fc2 = weight_variable([fc1_dim, fc2_dim])
         b_fc2 = weight_variable([fc2_dim])
         h_fc2 = tf.nn.elu(tf.matmul(h_fc1_bn, W_fc2) + b_fc2)
@@ -175,30 +175,29 @@ def build_fc_freq_5_NoTiedWeight_L1_Tiny (
 
     # FC5
     with tf.name_scope("FC5"):
-        fc5_dim = 300
+        fc5_dim = 100
         W_fc5 = weight_variable([fc4_dim, fc5_dim])
         b_fc5 = weight_variable([fc5_dim])
         h_fc5 = tf.nn.elu(tf.matmul(h_fc4_bn, W_fc5) + b_fc5)
         h_fc5_bn = batch_norm_wrapper(h_fc5, is_training)
 
     with tf.name_scope("FC6"):
-        fc6_dim = 1000
+        fc6_dim = 200
         W_fc6 = weight_variable([fc5_dim, fc6_dim])
         b_fc6 = weight_variable([fc6_dim])
         h_fc6 = tf.nn.elu(tf.matmul(h_fc5_bn, W_fc6) + b_fc6)
         h_fc6_bn = batch_norm_wrapper(h_fc6, is_training)
 
+    with tf.name_scope("Dropout6"):
+        h_fc6_bn = tf.nn.dropout(h_fc6_bn, keep_prob)
+
 
     with tf.name_scope("FC7"):
-        fc7_dim = 500
+        fc7_dim = 300
         W_fc7 = weight_variable([fc6_dim, fc7_dim])
-        b_fc7 = weight_variable([fc7_dim])
-        h_fc7 = tf.nn.elu(tf.matmul(h_fc6_bn, W_fc7) + b_fc7)
+        b_fc7 = weight_variable([fc6_dim])
+        h_fc7 = tf.nn.elu(tf.matmul(h_fc6_bn, W_fc6) + b_fc6)
         h_fc7_bn = batch_norm_wrapper(h_fc7, is_training)
-
-    # dropout
-    #with tf.name_scope("Dropout7"):
-    #    h_fc7_drop = tf.nn.dropout(h_fc7, keep_prob)
 
     # FC8
     with tf.name_scope("FC8"):

@@ -183,14 +183,13 @@ def main(_):
                 val_loss.append(val_batch_loss)
                 avg_val_cost += val_batch_loss
 
-            #l1_loss_network = l1_loss.eval({
-            #            x: eeg._valid_data, 
-            #            dropout_keep_prob: 1.0, 
-            #            is_training: False})
+            l1_loss_network = l1_loss.eval({
+                        x: eeg._valid_data, 
+                        dropout_keep_prob: 1.0, 
+                        is_training: False})
             current_step = tf.train.global_step(sess, global_step)
             avg_epoch_loss = avg_cost / total_batches
             avg_epoch_val_loss = avg_val_cost / total_batches
-            l1_loss_network = avg_epoch_loss
             print('Epoch {:6d}, step {:6d}, l1_loss= {:6.5f}, agv_loss= {:6.5f}, eval_los= {:6.5f}'.format(epoch, current_step, l1_loss_network, avg_epoch_loss, avg_epoch_val_loss))
 
             if (epoch+1) % num_epochs_save == 0:
