@@ -13,6 +13,22 @@ class eeg_data(object):
         self._index_in_epoch = 0
 
 
+    def get_data_list_from_files(self, data_dir):
+        data = []
+        subject_names = []
+        cwd = os.getcwd()
+        os.chdir(data_dir)
+        for fName in glob.glob("*.h5"):
+            fNameFullPath = data_dir + '/' + fName
+            eeg_subject_data = self.read_hdf5(fNameFullPath)
+            data.append(eeg_subject_data)
+            subject_names.append(fName)
+
+        os.chdir(cwd)
+        return data, subject_names
+
+
+
     def get_data_from_files(self, data_dir, 
             num_val_samples, num_data_sec=180,
             fake=False ):

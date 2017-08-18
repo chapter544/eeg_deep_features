@@ -135,7 +135,7 @@ def get_input_data_path(model, data_base_dir):
 	elif model == "freq_4_30_NoTiedWeight_BN_Wrapper_Behind_Tiny":
 		# this is freq_5
 		#sub_volumes_dir = '/data1/volumes_freq_4_30'
-		sub_volumes_dir = '/home/chuong/volumes_freq_5'
+		sub_volumes_dir = '/home/chuong/volumes_freq_4_30'
 	elif model == "freq_5_NoTiedWeight_L1_Tiny":
 		# this is freq_5
 		#sub_volumes_dir = '/data1/volumes_freq_5'

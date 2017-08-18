@@ -18,8 +18,20 @@ def batch_norm_contrib(x, is_training):
 
 
 
+def fc_layer(layer_name, input_data, in_dim, out_dim, activation='elu'):
+    with tf.variable_scope(layer_name):
+        W = tf.get_variable('W', initializer=tf.truncated_normal([in_dim,
+            out_dim], stddev=0.01))
+        b = tf.get_variable('b', initializer=tf.zeros([out_dim]))
+        pre_activation = tf.matmul(input_data, W) + b
 
-
+        if activation == 'relu':
+            layer = tf.nn.relu(pre_activate)
+        elif activation == 'sigmoid':
+            layer = tf.nn.sigmoid(pre_activate)
+        else:
+            layer = tf.nn.elu(pre_activate)
+    return layer
 
 #def conv2d(x, W, strides=strides, padding=padding):
 #    return tf.nn.conv2d(x, W, strides=strides, padding=padding)
@@ -64,7 +76,7 @@ def dense_layer(X,
 
 
 
-def batch_norm_wrapper(inputs, is_training, decay=0.999):
+def batch_norm_wrapper(inputs, is_training, decay=0.9):
     epsilon = 1e-6
     scale = tf.Variable(tf.ones([inputs.get_shape()[-1]]))
     beta = tf.Variable(tf.zeros([inputs.get_shape()[-1]]))

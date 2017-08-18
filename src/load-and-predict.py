@@ -9,6 +9,7 @@ import tensorflow as tf
 import numpy as np
 import h5py
 import glob
+import pickle
 import os
 import argparse
 import sys
@@ -148,10 +149,15 @@ def main(_):
             sub_feature = sess.run(feature_op, feed_dict=feeds)
             output_features.append(sub_feature)
 
+
     for subject_idx, subject_name in enumerate(subject_names):
         subject_feat = output_features[subject_idx]
         plot_feature(subject_feat.transpose(), 
                      output_dir + '/' + subject_name + '.png')
+
+    # save it out to a file
+    with open(output_dir + '/deep_feature.pkl', 'wb') as f:
+        pickle.dump([subject_names, output_features], f)
 
 
 if __name__ == '__main__':
