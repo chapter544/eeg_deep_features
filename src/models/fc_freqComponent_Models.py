@@ -20,9 +20,13 @@ def build_fc_layer(X, in_dim, out_dim, layer_name, is_training,
         use_BN_Front=False,
         activation='relu'):
 
-    with tf.name_scope(layer_name):
-        W = weight_variable([in_dim, out_dim])
-        b = weight_variable([out_dim])
+    stddev = np.sqrt(2.0/in_dim)
+    with tf.variable_scope(layer_name):
+        W = tf.get_variable(
+				initializer=tf.truncated_normal(
+					shape=[in_dim, out_dim], stddev=stddev), name='W')
+        b = tf.get_variable(
+				initializer=tf.constant(0.0, shape=[out_dim]), name='b')
         h = tf.nn.bias_add(tf.matmul(X, W), b)
 
         if use_BN is True: # use BN layer
@@ -33,7 +37,7 @@ def build_fc_layer(X, in_dim, out_dim, layer_name, is_training,
 					h = tf.contrib.layers.batch_norm(
 								h, 
 								is_training=is_training, 
-								decay=0.9,
+								decay=0.99,
 								center=True, 
 								scale=True, 
 								activation_fn=tf.nn.relu, 
@@ -57,7 +61,7 @@ def build_fc_layer(X, in_dim, out_dim, layer_name, is_training,
 					h = tf.contrib.layers.batch_norm(
 								h, 
 								is_training=is_training, 
-								decay=0.9,
+								decay=0.99,
 								center=True, 
 								scale=True, 
 								activation_fn=tf.nn.relu, 
