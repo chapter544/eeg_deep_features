@@ -73,15 +73,37 @@ def dense_layer(X,
 
 
 
+def batch_norm(x, scope, is_training_phase, epsilon=0.001, decay=0.99):
+    """
+    Returns a batch normalization layer that automatically switch between train and test phases based on the 
+    tensor is_training
 
+    Args:
+        x: input tensor
+        scope: scope name
+        is_training: boolean tensor or variable
+        epsilon: epsilon parameter - see batch_norm_layer
+        decay: epsilon parameter - see batch_norm_layer
 
+    Returns:
+        The correct batch normalization layer based on the value of is_training
+    """
+    outputs = tf.contrib.layers.batch_norm(
+			x, 
+			is_training=is_training_phase, 
+			decay=0.9,
+			center=True, 
+			scale=True, 
+			activation_fn=tf.nn.relu, 
+			updates_collections=None, 
+			scope=scope),
+    return outputs
 
-def batch_norm_wrapper(inputs, is_training, decay=0.9):
-    epsilon = 1e-6
-    scale = tf.Variable(tf.ones([inputs.get_shape()[-1]]))
-    beta = tf.Variable(tf.zeros([inputs.get_shape()[-1]]))
-    pop_mean = tf.Variable(tf.zeros([inputs.get_shape()[-1]]), trainable=False)
-    pop_var = tf.Variable(tf.ones([inputs.get_shape()[-1]]), trainable=False)
+def batch_norm_wrapper(inputs, is_training, epsilon=1e-6, decay=0.9):
+    scale = tf.get_variable(tf.ones([inputs.get_shape()[-1]]))
+    beta = tf.get_variable(tf.zeros([inputs.get_shape()[-1]]))
+    pop_mean = tf.get_variable(tf.zeros([inputs.get_shape()[-1]]), trainable=False)
+    pop_var = tf.get_variable(tf.ones([inputs.get_shape()[-1]]), trainable=False)
 
     if is_training is True:
         batch_mean, batch_var = tf.nn.moments(inputs, [0])

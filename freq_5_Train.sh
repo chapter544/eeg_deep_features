@@ -17,7 +17,7 @@ python src/auto-encoder.py \
     --use_BN=1 \
     --use_BN_Contrib=0 \
     --use_BN_Front=0 \
-    --use_dropout=0 \
+    --use_dropout=1 \
     --dropout_keep=0.7 \
     --use_L1_Reg=0 \
     --gamma=1e-7 \

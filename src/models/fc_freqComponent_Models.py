@@ -11,13 +11,13 @@ import tensorflow as tf
 import numpy as np
 import sys
 from tf_utils import weight_variable, bias_variable
-from tf_utils import batch_norm_wrapper, batch_norm_contrib
+from tf_utils import batch_norm_wrapper, batch_norm_contrib, batch_norm
 
 
-def build_fc_layer(X, in_dim, out_dim, layer_name,
+def build_fc_layer(X, in_dim, out_dim, layer_name, is_training,
         use_dropout=False, keep_prob=0.5,
         use_BN=False, use_BN_Contrib=False, 
-        bn_is_training=False, use_BN_Front=False,
+        use_BN_Front=False,
         activation='relu'):
 
     with tf.name_scope(layer_name):
@@ -28,9 +28,18 @@ def build_fc_layer(X, in_dim, out_dim, layer_name,
         if use_BN is True: # use BN layer
             if use_BN_Front is True: # use BN in front of activation
                 if use_BN_Contrib is True:
-                    h = batch_norm_contrib(h, bn_is_training)
+                    h = batch_norm_contrib(h, is_training)
                 else:
-                    h = batch_norm_wrapper(h, bn_is_training)
+					h = tf.contrib.layers.batch_norm(
+								h, 
+								is_training=is_training, 
+								decay=0.9,
+								center=True, 
+								scale=True, 
+								activation_fn=tf.nn.relu, 
+								updates_collections=None) 
+
+
 
                 if activation == 'elu':
                     h = tf.nn.elu(h, name=layer_name)
@@ -43,9 +52,17 @@ def build_fc_layer(X, in_dim, out_dim, layer_name,
                     h = tf.nn.relu(h, name=layer_name)
 
                 if use_BN_Contrib is True:
-                    h = batch_norm_contrib(h, bn_is_training)
+                    h = batch_norm_contrib(h, is_training)
                 else:
-                    h = batch_norm_wrapper(h, bn_is_training)
+					h = tf.contrib.layers.batch_norm(
+								h, 
+								is_training=is_training, 
+								decay=0.9,
+								center=True, 
+								scale=True, 
+								activation_fn=tf.nn.relu, 
+								updates_collections=None) 
+
         else: # do not use BN
             if activation == 'elu':
                 h = tf.nn.elu(h, name=layer_name)
@@ -63,12 +80,13 @@ def build_fc_layer(X, in_dim, out_dim, layer_name,
 def build_network_NoTiedWeight(
         X, 
         network_dims,
+        bn_is_training,
         use_dropout=False,
         keep_prob=0.5, 
         use_BN=False,
         use_BN_Contrib=False,
         use_BN_Front=False,
-        bn_is_training=False,
+        #bn_is_training=False,
         use_L1_Reg=False,
         gamma=1e-7, 
         activation='elu'):
@@ -79,88 +97,98 @@ def build_network_NoTiedWeight(
 
     # FC1
     fc1 = build_fc_layer(X, X_dim, fc1_dim, 'FC1',
+                            bn_is_training,
                             use_dropout=use_dropout, 
                             keep_prob=keep_prob,
                             use_BN=use_BN,
                             use_BN_Contrib=use_BN_Contrib,
-                            bn_is_training=bn_is_training, 
+                            #bn_is_training=bn_is_training, 
                             use_BN_Front=use_BN_Front, activation='elu')
     # FC2
     fc2 = build_fc_layer(fc1, fc1_dim, fc2_dim, 'FC2',
+                            bn_is_training,
                             use_dropout=use_dropout, 
                             keep_prob=keep_prob,
                             use_BN=use_BN,
                             use_BN_Contrib=use_BN_Contrib,
-                            bn_is_training=bn_is_training, 
+                            #bn_is_training=bn_is_training, 
                             use_BN_Front=use_BN_Front, activation='elu')
 
     # FC3
     fc3 = build_fc_layer(fc2, fc2_dim, fc3_dim, 'FC3',
+                            bn_is_training,
                             use_dropout=use_dropout, 
                             keep_prob=keep_prob,
                             use_BN=use_BN,
                             use_BN_Contrib=use_BN_Contrib,
-                            bn_is_training=bn_is_training, 
+                            #bn_is_training=bn_is_training, 
                             use_BN_Front=use_BN_Front, activation='elu')
 
     # FC4
     fc4 = build_fc_layer(fc3, fc3_dim, fc4_dim, 'FC4',
+                            bn_is_training,
                             use_dropout=use_dropout, 
                             keep_prob=keep_prob,
                             use_BN=use_BN,
                             use_BN_Contrib=use_BN_Contrib,
-                            bn_is_training=bn_is_training, 
+                            #bn_is_training=bn_is_training, 
                             use_BN_Front=use_BN_Front, activation='elu')
     # FCFeat
     fc_feat = build_fc_layer(fc4, fc4_dim, fc_feat_dim, 'FCFeat',
+                            bn_is_training,
                             use_dropout=use_dropout, 
                             keep_prob=keep_prob,
                             use_BN=False, # NO BN on the feature output
                             use_BN_Contrib=use_BN_Contrib,
-                            bn_is_training=bn_is_training, 
+                            #bn_is_training=bn_is_training, 
                             use_BN_Front=use_BN_Front, activation='elu')
     # FC5
     fc5 = build_fc_layer(fc_feat, fc_feat_dim, fc5_dim, 'FC5',
+                            bn_is_training,
                             use_dropout=use_dropout, 
                             keep_prob=keep_prob,
                             use_BN=use_BN,
                             use_BN_Contrib=use_BN_Contrib,
-                            bn_is_training=bn_is_training, 
+                            #bn_is_training=bn_is_training, 
                             use_BN_Front=use_BN_Front, activation='elu')
 
      # FC6
     fc6 = build_fc_layer(fc5, fc5_dim, fc6_dim, 'FC6',
+                            bn_is_training,
                             use_dropout=use_dropout, 
                             keep_prob=keep_prob,
                             use_BN=use_BN,
                             use_BN_Contrib=use_BN_Contrib,
-                            bn_is_training=bn_is_training, 
+                            #bn_is_training=bn_is_training, 
                             use_BN_Front=use_BN_Front, activation='elu')
  
     # FC7
     fc7 = build_fc_layer(fc6, fc6_dim, fc7_dim, 'FC7',
+                            bn_is_training,
                             use_dropout=use_dropout, 
                             keep_prob=keep_prob,
                             use_BN=use_BN,
                             use_BN_Contrib=use_BN_Contrib,
-                            bn_is_training=bn_is_training, 
+                            #bn_is_training=bn_is_training, 
                             use_BN_Front=use_BN_Front, activation='elu')
     # FC8
     fc8 = build_fc_layer(fc7, fc7_dim, fc8_dim, 'FC8',
+                            bn_is_training,
                             use_dropout=use_dropout, 
                             keep_prob=keep_prob,
                             use_BN=use_BN,
                             use_BN_Contrib=use_BN_Contrib,
-                            bn_is_training=bn_is_training, 
+                            #bn_is_training=bn_is_training, 
                             use_BN_Front=use_BN_Front, activation='elu')
  
     # FC9
     fc9 = build_fc_layer(fc8, fc8_dim, X_dim, 'FC9',
+                            bn_is_training,
                             use_dropout=False, 
                             keep_prob=keep_prob,
                             use_BN=False, # NO BN on the last layer
                             use_BN_Contrib=use_BN_Contrib,
-                            bn_is_training=bn_is_training, 
+                            #bn_is_training=bn_is_training, 
                             use_BN_Front=use_BN_Front, 
                             activation='none') # LINEAR ACTIVATION)
  
