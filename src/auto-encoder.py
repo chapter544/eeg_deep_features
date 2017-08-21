@@ -17,21 +17,7 @@ from pkg_resources import parse_version
 from eeg_input_data import eeg_data
 from eeg_org_data import eeg_subject_data
 from utils import get_input_data_path, get_data_path_with_timestamp
-from utils import build_model
-from models.fc_freqSum_TiedWeight import build_fc_freqSum_TiedWeight
-from models.fc_freqSum_TiedWeight import build_fc_freqSum_TiedWeight_NoBias
-from models.fc_freqSum_TiedWeight import build_fc_freqSum_TiedWeight_NoDropout
-from models.fc_freqSum_TiedWeight import build_fc_freqSum
-from models.fc_freqSum_TiedWeight import build_fc_freqSum_TiedWeight_Big
-from models.fc_freqSum_TiedWeight import build_fc_freqSum_NoTiedWeight_Big
-from models.fc_freqSum_TiedWeight import build_fc_freqSum_NoTiedWeight_Small
-#from models.fc_freqSum_TiedWeight import build_fc_freqSum_NoTiedWeight_Medium
-from models.fc_freqSum_TiedWeight import build_fc_freqSum_NoTiedWeight_Tiny
-
-from models.fc_freq_Models import build_fc_freq_4_30_TiedWeight_Small
-from models.fc_freq_Models import build_fc_freq_4_30_NoTiedWeight_Small
-from models.fc_freq_Models import build_fc_freq_5_TiedWeight_Small
-
+from models.fc_freqComponent_Models import build_network_NoTiedWeight
 
 FLAGS = None
 
@@ -43,10 +29,10 @@ def main(_):
     eeg = eeg_data()
 
     if FLAGS.data_type == 'subsample': # subsample on 3D axes
-        eeg.get_data(sub_volumes_dir, fake=FLAGS.test)
+        eeg.get_data(sub_volumes_dir, fake=False)
     else: # no subsampling
         eeg.get_data(sub_volumes_dir, num_data_sec=-1, 
-                fake=FLAGS.test, normalization=FLAGS.data_normalization)
+                fake=False, normalization=FLAGS.data_normalization)
 
     X = eeg.train_data
     print('{} x {}'.format(X.shape[0], X.shape[1]))
@@ -64,18 +50,30 @@ def main(_):
 
 
     # BUILD MODEL
-    # L1 regularization gamma
-    gamma = FLAGS.gamma
-    feature_activation = FLAGS.feature_activation
-    loss, decoded, l1_loss = build_model(
-		FLAGS.model,
-		x,
-		x_dim,
-		dropout_keep_prob,
-		gamma,
-		feature_activation,
-		is_training)
+	parsed_dims = [int(item) for item in FLAGS.network_params.split(',')]
+	network_dims = [x_dim] + parsed_dims
+	print("Network dims: {}".format(network_dims))
 
+	# Convert network parameters
+	gamma = FLAGS.gamma
+	feature_activation = FLAGS.feature_activation
+	dropout_rate_param = FLAGS.dropout_keep
+	use_dropout =( FLAGS.use_dropout == 1)
+	use_BN = (FLAGS.use_BN == 1)
+	use_BN_Front = (FLAGS.use_BN_Front == 1)
+	use_BN_Contrib = (FLAGS.use_BN_Contrib == 1)
+	use_L1_Reg = (FLAGS.use_L1_Reg == 1)
+	loss, decoded, l1_loss = build_network_NoTiedWeight(
+		x, network_dims ,
+		use_dropout=use_dropout,
+		keep_prob=dropout_keep_prob, # this is tf place holder
+		use_BN=use_BN,
+		use_BN_Contrib=use_BN_Contrib,
+		use_BN_Front=use_BN_Front,
+		bn_is_training=is_training, # this is tf placeholder
+		use_L1_Reg=use_L1_Reg,
+		gamma=1e-7, 
+		activation=FLAGS.feature_activation)
 
     # create model directory to write outputs
     model_path = get_data_path_with_timestamp(
@@ -92,15 +90,27 @@ def main(_):
     model_file_prefix = model_path + '/' + FLAGS.model + '_epoch_'
 
 
+    model_file_params_fname = model_path + '/' + FLAGS.model + '.txt'
+    with open(model_file_params_fname, 'w') as f:
+		f.write("Time: {}\n".format(
+			datetime.now().strftime('%Y-%m-%d-%H%M%S')))
+		f.write("Model name: {}\n".format(FLAGS.model))
+		f.write("Network params: {}\n".format(network_dims))
+		f.write("Use Dropout: {}\n".format(FLAGS.use_dropout))
+		f.write("Dropout keep rate: {}\n".format(FLAGS.dropout_keep))
+		f.write("Use BN: {}\n".format(FLAGS.use_BN))
+		f.write("Use BN Front: {}\n".format(FLAGS.use_BN_Front))
+		f.write("Use BN Contrib: {}\n".format(FLAGS.use_BN_Contrib))
+		f.write("Use L1 Reg: {}\n".format(FLAGS.use_L1_Reg))
+		f.write("Activation: {}\n".format(FLAGS.feature_activation))
 
-    global_step = tf.Variable(0, name="global_step", trainable=False)
 
     # OPTIMIZER
-
     #boundaries = [300, 600]
     #values = [1e-2, 1e-3, 1e-4]
     #lr_rate = tf.train.piecewise_constant(global_step, boundaries, values)
      # AdamOptimizer
+    global_step = tf.Variable(0, name="global_step", trainable=False)
     lr_rate = FLAGS.learning_rate
     train_step = tf.train.AdamOptimizer(
                     learning_rate=lr_rate).\
@@ -162,7 +172,10 @@ def main(_):
             for batch in  eeg.iterate_minibatches(batch_size, shuffle=True):
                 batch_idx += 1
                 batch_xs = batch
-                feeds = {x: batch_xs, dropout_keep_prob: 0.5, is_training: True}
+                feeds = {
+						x: batch_xs, 
+						dropout_keep_prob: dropout_rate_param, 
+						is_training: True}
                 _, step, summary = sess.run(
                         [train_step, global_step, summary_op],
                         feed_dict=feeds)
@@ -226,6 +239,8 @@ if __name__ == '__main__':
             default='relu', help='Activation function: relu, softmax')
     parser.add_argument('--data_type', type=str, 
         default='subsample', help='Subsampling (subsample, freqSum)')
+    parser.add_argument('--network_params', type=str, 
+		default="800,600,300,200,64", help='Network parameters')
     parser.add_argument('--num_epochs', type=int, default=50, 
         help='Number of epochs')
     parser.add_argument('--num_epochs_save', type=int, 
@@ -234,14 +249,22 @@ if __name__ == '__main__':
         default=32, help='Mini-batch size')
     parser.add_argument('--learning_rate', type=float , 
         default=1e-6, help='Learning rate')
-    #parser.add_argument('--decay_rate', type=float , 
-    #    default=0.8, help='Decay rate')
-    #parser.add_argument('--decay_step', type=float , 
-    #    default=5000, help='Decay step')
+    parser.add_argument('--use_dropout', type=int, 
+        default=True, help='use Dropout')
+    parser.add_argument('--dropout_keep', type=float, 
+        default=0.6, help='Dropout keep probability [0,1]')
+    parser.add_argument('--use_BN', type=int, 
+        default=1, help='use Batch normalization')
+    parser.add_argument('--use_BN_Front', type=int, 
+        default=0, help='use BN in FRONT of activation function')
+    parser.add_argument('--use_BN_Contrib', type=int, 
+        default=0, help='use Batch normalization done by tf.Contrib')
+    parser.add_argument('--use_L1_Reg', type=int, 
+        default=0, help='use L1 regularization')
     parser.add_argument('--gamma', type=float , 
         default=1e-7, help='Regularization gain')
-    parser.add_argument('--test', type=bool, 
-        default=False, help='True for fake data')
+    #parser.add_argument('--test', type=bool, 
+    #    default=False, help='True for fake data')
     parser.add_argument('--data_normalization', type=str, 
         default='scaling', help='Data normalization: scaling, normalize, none')
 
