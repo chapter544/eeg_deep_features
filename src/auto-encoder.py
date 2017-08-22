@@ -105,6 +105,8 @@ def main(_):
 		f.write("Use BN Contrib: {}\n".format(FLAGS.use_BN_Contrib))
 		f.write("Use L1 Reg: {}\n".format(FLAGS.use_L1_Reg))
 		f.write("Activation: {}\n".format(FLAGS.feature_activation))
+		f.write("Learning rate: {}\n".format(FLAGS.learning_rate))
+		f.write("Batch size: {}\n".format(FLAGS.batch_size))
 
 
     # AdamOptimizer with scheduled learning rate
