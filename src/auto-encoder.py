@@ -110,9 +110,9 @@ def main(_):
     # AdamOptimizer with scheduled learning rate
     global_step = tf.Variable(0, name="global_step", trainable=False)
     start_lr = FLAGS.learning_rate
-	lr_boundaries = [int(item) for item in FLAGS.lr_intervals.split(',')]
-    lr_values = [start_lr*(10**(-i)) for i in range(1, len(lr_boundaries)+2)]
-    lr_rate = tf.train.piecewise_constant(global_step, boundaries, lr_values)
+    lr_boundaries = [int(item) for item in FLAGS.lr_intervals.split(',')]
+    lr_values = [start_lr*(10**(-i)) for i in range(0, len(lr_boundaries)+1)]
+    lr_rate = tf.train.piecewise_constant(global_step, lr_boundaries, lr_values)
 	#lr_rate = FLAGS.learning_rate
     train_step = tf.train.AdamOptimizer(
 						learning_rate=lr_rate).\
@@ -210,7 +210,8 @@ def main(_):
 			current_step = tf.train.global_step(sess, global_step)
 			avg_epoch_loss = avg_cost / total_batches
 			avg_epoch_val_loss = avg_val_cost / total_batches
-			print('Epoch {:6d}, step {:6d}, l1_loss= {:6.5f}, agv_loss= {:6.5f}, eval_los= {:6.5f}'.format(epoch, current_step, l1_loss_network, avg_epoch_loss, avg_epoch_val_loss))
+			current_lr_rate = sess.run(lr_rate)
+			print('Epoch {:6d}, step {:6d}, lr_rate= {:6.5f}, agv_loss= {:6.5f}, eval_los= {:6.5f}'.format(epoch, current_step, current_lr_rate, avg_epoch_loss, avg_epoch_val_loss))
 
 			if (epoch+1) % num_epochs_save == 0:
 				model_file_fullpath = model_file_prefix + str(epoch+1) + '_' + \
