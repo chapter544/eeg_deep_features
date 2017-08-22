@@ -106,16 +106,16 @@ def main(_):
 		f.write("Activation: {}\n".format(FLAGS.feature_activation))
 
 
-    # OPTIMIZER
-    #boundaries = [300, 600]
-    #values = [1e-2, 1e-3, 1e-4]
-    #lr_rate = tf.train.piecewise_constant(global_step, boundaries, values)
-     # AdamOptimizer
+    # AdamOptimizer with scheduled learning rate
     global_step = tf.Variable(0, name="global_step", trainable=False)
-    lr_rate = FLAGS.learning_rate
+    start_lr = FLAGS.learning_rate
+    boundaries = [5000, 10000, 15000]
+    lr_values = [start_lr*(10**(-i)) for i in range(1, len(boundaries)+2)]
+    lr_rate = tf.train.piecewise_constant(global_step, boundaries, lr_values)
+	#lr_rate = FLAGS.learning_rate
     train_step = tf.train.AdamOptimizer(
-                    learning_rate=lr_rate).\
-                    minimize(loss, global_step=global_step) 
+						learning_rate=lr_rate).\
+						minimize(loss, global_step=global_step) 
 
 
     # MomentumOptmizer

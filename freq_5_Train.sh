@@ -13,7 +13,7 @@ python src/auto-encoder.py \
     --trained_models_base_dir='/home/chuong/EEG-Project/trained_models' \
     --model='freq_5_NoTiedWeight' \
     --data_type='freqSum'\
-    --network_params="400,300,300,200,64" \
+    --network_params="600,400,400,200,64" \
     --use_BN=1 \
     --use_BN_Contrib=0 \
     --use_BN_Front=0 \
@@ -25,8 +25,8 @@ python src/auto-encoder.py \
     --feature_activation='elu' \
     --batch_size=500 \
     --learning_rate=1e-4 \
-    --num_epochs=400 \
-    --num_epochs_save=400
+    --num_epochs=800 \
+    --num_epochs_save=800
 
 # freq 5 + NO tied weight + Wapper - BEHIND - TINY
 #python src/auto-encoder.py --data_base_dir='/home/chuong/volumes_freq_5' --trained_models_base_dir='/home/chuong/EEG-Project/trained_models' --model='freq_5_NoTiedWeight_BN_Wrapper_Behind_Tiny' --data_type='freqSum' --batch_size=500 --num_epochs=400 --learning_rate=0.0007 --num_epochs_save=400 --gamma=1e-7 --data_normalization='normalize' --feature_activation='elu'
