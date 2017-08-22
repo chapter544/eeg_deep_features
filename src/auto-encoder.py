@@ -25,7 +25,8 @@ FLAGS = None
 def main(_):
     ##################################################################
     # Read data 
-    sub_volumes_dir = get_input_data_path(FLAGS.model, FLAGS.data_base_dir)
+    #sub_volumes_dir = get_input_data_path(FLAGS.model, FLAGS.data_base_dir)
+    sub_volumes_dir = FLAGS.data_base_dir
     eeg = eeg_data()
 
     if FLAGS.data_type == 'subsample': # subsample on 3D axes
