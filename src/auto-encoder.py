@@ -110,8 +110,8 @@ def main(_):
     # AdamOptimizer with scheduled learning rate
     global_step = tf.Variable(0, name="global_step", trainable=False)
     start_lr = FLAGS.learning_rate
-    boundaries = [5000, 10000, 15000]
-    lr_values = [start_lr*(10**(-i)) for i in range(1, len(boundaries)+2)]
+	lr_boundaries = [int(item) for item in FLAGS.lr_intervals.split(',')]
+    lr_values = [start_lr*(10**(-i)) for i in range(1, len(lr_boundaries)+2)]
     lr_rate = tf.train.piecewise_constant(global_step, boundaries, lr_values)
 	#lr_rate = FLAGS.learning_rate
     train_step = tf.train.AdamOptimizer(
@@ -252,6 +252,30 @@ if __name__ == '__main__':
 	default=32, help='Mini-batch size')
 	parser.add_argument('--learning_rate', type=float , 
 	default=1e-6, help='Learning rate')
+	parser.add_argument('--lr_intervals', type=str, 
+	default='3000,6000,1000', help='lr intervals (iterations not epochs)')
+	parser.add_argument('--use_dropout', type=int, 
+	default=True, help='use Dropout')
+	parser.add_argument('--dropout_keep', type=float, 
+	default=0.6, help='Dropout keep probability [0,1]')
+	parser.add_argument('--use_BN', type=int, 
+	default=1, help='use Batch normalization')
+	parser.add_argument('--use_BN_Front', type=int, 
+	default=0, help='use BN in FRONT of activation function')
+	parser.add_argument('--use_BN_Contrib', type=int, 
+	default=0, help='use Batch normalization done by tf.Contrib')
+	parser.add_argument('--use_L1_Reg', type=int, 
+	default=0, help='use L1 regularization')
+	parser.add_argument('--gamma', type=float , 
+	default=1e-7, help='Regularization gain')
+	#parser.add_argument('--test', type=bool, 
+	#    default=False, help='True for fake data')
+	parser.add_argument('--data_normalization', type=str, 
+	default='scaling', help='Data normalization: scaling, normalize, none')
+
+	FLAGS, unparsed = parser.parse_known_args()
+	#tf.app.run(main=main, argv=[sys.argv[0]] + unparsed)
+	tf.app.run(main=main)
 	parser.add_argument('--use_dropout', type=int, 
 	default=True, help='use Dropout')
 	parser.add_argument('--dropout_keep', type=float, 

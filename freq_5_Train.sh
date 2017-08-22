@@ -24,7 +24,8 @@ python src/auto-encoder.py \
     --data_normalization='normalize' \
     --feature_activation='elu' \
     --batch_size=500 \
-    --learning_rate=1e-4 \
+    --learning_rate=1e-3 \
+    --lr_intervals="3000,6000,10000" \
     --num_epochs=800 \
     --num_epochs_save=800
 
