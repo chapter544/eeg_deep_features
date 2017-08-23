@@ -13,8 +13,7 @@ python src/auto-encoder.py \
     --trained_models_base_dir='/home/chuong/EEG-Project/trained_models' \
     --model='freq_4_30_NoTiedWeight' \
     --data_type='freqSum'\
-    #--network_params="400,400,400,200,200,64" \
-    --network_params="400,200,200,64" \
+    --network_params="400,400,400,200,200,64" \
     --use_BN=1 \
     --use_BN_Contrib=0 \
     --use_BN_Front=0 \
@@ -24,8 +23,8 @@ python src/auto-encoder.py \
     --gamma=1e-7 \
     --data_normalization='normalize' \
     --feature_activation='elu' \
-    --batch_size=1000 \
-    --learning_rate=1e-3 \
+    --batch_size=500 \
+    --learning_rate=3e-5 \
     --lr_intervals="3000,6000" \
     --num_epochs=1000 \
     --num_epochs_save=1000
