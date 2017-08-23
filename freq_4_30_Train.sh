@@ -23,8 +23,8 @@ python src/auto-encoder.py \
     --gamma=1e-7 \
     --data_normalization='normalize' \
     --feature_activation='elu' \
-    --batch_size=1000 \
-    --learning_rate=1e-4 \
+    --batch_size=500 \
+    --learning_rate=3e-5 \
     --lr_intervals="3000,6000" \
     --num_epochs=1000 \
     --num_epochs_save=1000

@@ -113,7 +113,7 @@ def main(_):
     global_step = tf.Variable(0, name="global_step", trainable=False)
     start_lr = FLAGS.learning_rate
     lr_boundaries = [int(item) for item in FLAGS.lr_intervals.split(',')]
-    lr_values = [start_lr*(10**(-i)) for i in range(0, len(lr_boundaries)+1)]
+    lr_values = [start_lr*(1**(-i)) for i in range(0, len(lr_boundaries)+1)]
     lr_rate = tf.train.piecewise_constant(global_step, lr_boundaries, lr_values)
     #lr_rate = FLAGS.learning_rate
     train_step = tf.train.AdamOptimizer(
