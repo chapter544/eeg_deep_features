@@ -14,7 +14,7 @@ python src/auto-encoder.py \
     --model='freq_5_NoTiedWeight' \
     --data_type='freqSum'\
     --network_params="600,400,400,200,200,64" \
-    --use_BN=0 \
+    --use_BN=1 \
     --use_BN_Contrib=0 \
     --use_BN_Front=0 \
     --use_dropout=0 \
@@ -23,7 +23,7 @@ python src/auto-encoder.py \
     --gamma=1e-7 \
     --data_normalization='normalize' \
     --feature_activation='elu' \
-    --batch_size=128 \
+    --batch_size=200 \
     --learning_rate=1e-3 \
     --lr_intervals="3000,6000"\
     --num_epochs=1000 \
