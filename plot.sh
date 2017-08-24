@@ -13,7 +13,7 @@
 #python src/load-and-predict.py --data_base_dir='/home/chuong/EEG-Project/processed_data' --trained_model_base_dir='/home/chuong/EEG-Project/trained_models' --model='freq_4_30_NoTiedWeight_Small' --trained_model_name='2017-08-10-120651-relu' --data_type='freqSum' --data_normalization='normalize' --feature_activation='linear'
 
 # freq_4_30_NoTiedWeight_BN_Wrapper_Behind_Tiny
-python src/load-and-predict.py --data_base_dir='/home/chuong/EEG-Project/processed_data' --trained_model_base_dir='/home/chuong/EEG-Project/trained_models' --model='freq_4_30_NoTiedWeight_BN_Wrapper_Behind_Tiny' --trained_model_name='2017-08-16-190307-relu' --data_type='freqSum' --data_normalization='normalize' --feature_activation='linear'
+#python src/load-and-predict.py --data_base_dir='/home/chuong/EEG-Project/processed_data' --trained_model_base_dir='/home/chuong/EEG-Project/trained_models' --model='freq_4_30_NoTiedWeight_BN_Wrapper_Behind_Tiny' --trained_model_name='2017-08-16-190307-relu' --data_type='freqSum' --data_normalization='normalize' --feature_activation='linear'
 ###############################################################################
 # freqSum_NoTiedWeight_BN_Wrapper_Behind_Tiny
 #python src/load-and-predict.py --data_base_dir='/home/chuong/EEG-Project/processed_data' --trained_model_base_dir='/home/chuong/EEG-Project/trained_models' --model='freqSum_NoTiedWeight_BN_Wrapper_Behind_Tiny' --trained_model_name='2017-08-16-160815-elu' --data_type='freqSum' --data_normalization='normalize' --feature_activation='linear'
@@ -22,6 +22,9 @@ python src/load-and-predict.py --data_base_dir='/home/chuong/EEG-Project/process
 #python src/load-predict.py --data_base_dir='/home/chuong/EEG-Project/processed_data' --trained_model_base_dir='/home/chuong/EEG-Project/trained_models' --model='freqSum_NoTiedWeight_Big' --trained_model_name='2017-07-18-052148' --data_type='freqSum' --data_normalization='normalize' --feature_activation='linear'
 
 ###############################################################################
+
+# freq_5_NoTiedWeight_BN_Wrapper_Behind_Tiny
+python src/load_predict_v2.py --data_base_dir='/home/chuong/EEG-Project/processed_data' --trained_model_base_dir='/home/chuong/EEG-Project/trained_models' --model='freq_5_NoTiedWeight' --trained_model_name='2017-08-24-102333-elu' --data_type='freqSum' --data_normalization='normalize' --feature_activation='elu'
 
 # freq_5_NoTiedWeight_BN_Wrapper_Behind_Tiny
 #python src/load-and-predict.py --data_base_dir='/home/chuong/EEG-Project/processed_data' --trained_model_base_dir='/home/chuong/EEG-Project/trained_models' --model='freq_5_NoTiedWeight_BN_Wrapper_Behind_Tiny' --trained_model_name='2017-08-16-165112-elu' --data_type='freqSum' --data_normalization='normalize' --feature_activation='linear'

@@ -18,19 +18,6 @@ from pkg_resources import parse_version
 from eeg_input_data import eeg_data
 from eeg_org_data import eeg_subject_data
 from utils import get_input_data_path, get_data_path_with_timestamp
-from utils import build_model
-from models.fc_freqSum_TiedWeight import build_fc_freqSum_TiedWeight
-from models.fc_freqSum_TiedWeight import build_fc_freqSum_TiedWeight_NoBias
-from models.fc_freqSum_TiedWeight import build_fc_freqSum_TiedWeight_NoDropout
-from models.fc_freqSum_TiedWeight import build_fc_freqSum
-from models.fc_freqSum_TiedWeight import build_fc_freqSum_TiedWeight_Big
-from models.fc_freqSum_TiedWeight import build_fc_freqSum_NoTiedWeight_Big
-from models.fc_freqSum_TiedWeight import build_fc_freqSum_NoTiedWeight_Small
-from models.fc_freqSum_TiedWeight import build_fc_freqSum_NoTiedWeight_Medium
-from models.fc_freqSum_TiedWeight import build_fc_freqSum_NoTiedWeight_Tiny
-from models.fc_freqSum_TiedWeight import build_fc_freq_4_30_NoTiedWeight_Small
-from models.fc_freqSum_TiedWeight import build_fc_freq_4_30_TiedWeight_Small
-from models.fc_freqSum_TiedWeight import build_fc_freq_5_TiedWeight_Small
 import models
 
 

@@ -14,7 +14,7 @@ python src/auto-encoder.py \
     --model='freq_5_NoTiedWeight' \
     --data_type='freqSum'\
     --network_params="600,300,300,100,100,64" \
-    --use_BN=1 \
+    --use_BN=0 \
     --use_BN_Contrib=0 \
     --use_BN_Front=0 \
     --use_dropout=0 \
@@ -23,10 +23,10 @@ python src/auto-encoder.py \
     --gamma=1e-7 \
     --data_normalization='normalize' \
     --feature_activation='elu' \
-    --batch_size=500 \
-    --learning_rate=7e-4 \
+    --batch_size=1000 \
+    --learning_rate=7e-5\
     --lr_intervals="5000,10000"\
-    --num_epochs=1000 \
+    --num_epochs=600 \
     --num_epochs_save=1000
 
 # freq 5 + NO tied weight + Wapper - BEHIND - TINY
