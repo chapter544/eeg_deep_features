@@ -17,7 +17,9 @@ from pkg_resources import parse_version
 from eeg_input_data import eeg_data
 from eeg_org_data import eeg_subject_data
 from utils import get_input_data_path, get_data_path_with_timestamp
-from models.fc_freqComponent_Models import build_network_NoTiedWeight
+from models.fc_freq_4_30_Models import build_network_4_30_NoTiedWeight
+from models.fc_freq_5_Models import build_network_5_NoTiedWeight
+from models.fc_freq_SumAll_Models import build_network_SumAll_NoTiedWeight
 
 FLAGS = None
 
@@ -66,16 +68,42 @@ def main(_):
     use_BN_Front = (FLAGS.use_BN_Front == 1)
     use_BN_Contrib = (FLAGS.use_BN_Contrib == 1)
     use_L1_Reg = (FLAGS.use_L1_Reg == 1)
-    loss, decoded, l1_loss = build_network_NoTiedWeight(
-        x, network_dims, is_training,
-        use_dropout=use_dropout,
-        keep_prob=dropout_keep_prob, # this is tf place holder
-        use_BN=use_BN,
-        use_BN_Contrib=use_BN_Contrib,
-        use_BN_Front=use_BN_Front,
-        use_L1_Reg=use_L1_Reg,
-        gamma=gamma,
-        activation=FLAGS.feature_activation)
+    if FLAGS.model == 'freq_5_NoTiedWeight':
+        loss, decoded, l1_loss = build_network_5_NoTiedWeight(
+            x, network_dims, is_training,
+            use_dropout=use_dropout,
+            keep_prob=dropout_keep_prob, # this is tf place holder
+            use_BN=use_BN,
+            use_BN_Contrib=use_BN_Contrib,
+            use_BN_Front=use_BN_Front,
+            use_L1_Reg=use_L1_Reg,
+            gamma=gamma,
+            activation=FLAGS.feature_activation)
+    elif FLAGS.model == 'freq_4_30_NoTiedWeight':
+        loss, decoded, l1_loss = build_network_4_30_NoTiedWeight(
+            x, network_dims, is_training,
+            use_dropout=use_dropout,
+            keep_prob=dropout_keep_prob, # this is tf place holder
+            use_BN=use_BN,
+            use_BN_Contrib=use_BN_Contrib,
+            use_BN_Front=use_BN_Front,
+            use_L1_Reg=use_L1_Reg,
+            gamma=gamma,
+            activation=FLAGS.feature_activation)
+    else:
+        loss, decoded, l1_loss = build_network_SumAll_NoTiedWeight(
+            x, network_dims, is_training,
+            use_dropout=use_dropout,
+            keep_prob=dropout_keep_prob, # this is tf place holder
+            use_BN=use_BN,
+            use_BN_Contrib=use_BN_Contrib,
+            use_BN_Front=use_BN_Front,
+            use_L1_Reg=use_L1_Reg,
+            gamma=gamma,
+            activation=FLAGS.feature_activation)
+
+
+
 
     # create model directory to write outputs
     model_path = get_data_path_with_timestamp(

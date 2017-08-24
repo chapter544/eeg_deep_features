@@ -1,6 +1,86 @@
 import tensorflow as tf
 import numpy as np
 
+def PReLU(_x, name="prelu"):
+    _alpha = tf.get_variable(name, shape=_x.get_shape()[-1],
+            dtype=_x.dtype, initializer=tf.constant_initializer(0.1))
+    return tf.maximum(0.0, _x) + _alpha * tf.minimum(0.0, _x)
+
+
+def build_fc_layer(X, in_dim, out_dim, layer_name, is_training,
+        use_dropout=False, keep_prob=0.5,
+        use_BN=False, use_BN_Contrib=False, 
+        use_BN_Front=False,
+        activation='relu'):
+
+    stddev = np.sqrt(2.0/in_dim)
+    with tf.variable_scope(layer_name):
+        W = tf.get_variable(
+                initializer=tf.truncated_normal(
+                    shape=[in_dim, out_dim], stddev=stddev), name='W')
+        b = tf.get_variable(
+                initializer=tf.truncated_normal(
+                    shape=[out_dim], stddev=stddev), name='b')
+        h = tf.nn.bias_add(tf.matmul(X, W), b)
+
+        if use_BN is True: # use BN layer
+            if use_BN_Front is True: # use BN in front of activation
+                if use_BN_Contrib is True:
+                    h = batch_norm_contrib(h, is_training)
+                else:
+                    h = tf.contrib.layers.batch_norm(
+                                h, 
+                                is_training=is_training, 
+                                decay=0.99,
+                                center=True, 
+                                scale=True, 
+                                activation_fn=tf.nn.relu, 
+                                updates_collections=None) 
+
+                if activation == 'elu':
+                    h = tf.nn.elu(h, name=layer_name)
+                elif activation == 'prelu':
+                    h = PReLut(h, name=layer_name)
+                else:
+                    h = tf.nn.relu(h, name=layer_name)
+            else: # use BN after activation
+                if activation == 'elu':
+                    h = tf.nn.elu(h, name=layer_name)
+                elif activation == 'prelu':
+                    h = PReLut(h, name=layer_name)
+                else:
+                    h = tf.nn.relu(h, name=layer_name)
+
+                if use_BN_Contrib is True:
+                    h = batch_norm_contrib(h, is_training)
+                else:
+                    h = tf.contrib.layers.batch_norm(
+                                h, 
+                                is_training=is_training, 
+                                decay=0.99,
+                                center=True, 
+                                scale=True, 
+                                activation_fn=tf.nn.relu, 
+                                updates_collections=None) 
+
+        else: # do not use BN
+            if activation == 'elu':
+                h = tf.nn.elu(h, name=layer_name)
+            elif activation == 'prelu':
+                h = PReLut(h, name=layer_name)
+            elif activation == 'relu':
+                h = tf.nn.relu(h, name=layer_name)
+
+        if use_dropout is True:
+            h = tf.nn.dropout(h, keep_prob)
+
+        return h
+
+
+
+
+
+
 def weight_variable(shape):
     #initial = tf.truncated_normal(shape, stddev=0.01)
     initial = tf.truncated_normal(shape, stddev=0.03)
