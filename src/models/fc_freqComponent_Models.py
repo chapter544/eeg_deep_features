@@ -14,6 +14,12 @@ from tf_utils import weight_variable, bias_variable
 from tf_utils import batch_norm_wrapper, batch_norm_contrib, batch_norm
 
 
+def PReLU(_x, name="prelu"):
+    _alpha = tf.get_variable(name, shape=_x.get_shape()[-1],
+            dtype=_x.dtype, initializer=tf.constant_initializer(0.1))
+    return tf.maximum(0.0, _x) + _alpha * tf.minimum(0.0, _x)
+
+
 def build_fc_layer(X, in_dim, out_dim, layer_name, is_training,
         use_dropout=False, keep_prob=0.5,
         use_BN=False, use_BN_Contrib=False, 
@@ -46,11 +52,15 @@ def build_fc_layer(X, in_dim, out_dim, layer_name, is_training,
 
                 if activation == 'elu':
                     h = tf.nn.elu(h, name=layer_name)
+                elif activation == 'prelu':
+                    h = PReLut(h, name=layer_name)
                 else:
                     h = tf.nn.relu(h, name=layer_name)
             else: # use BN after activation
                 if activation == 'elu':
                     h = tf.nn.elu(h, name=layer_name)
+                elif activation == 'prelu':
+                    h = PReLut(h, name=layer_name)
                 else:
                     h = tf.nn.relu(h, name=layer_name)
 
@@ -69,6 +79,8 @@ def build_fc_layer(X, in_dim, out_dim, layer_name, is_training,
         else: # do not use BN
             if activation == 'elu':
                 h = tf.nn.elu(h, name=layer_name)
+            elif activation == 'prelu':
+                h = PReLut(h, name=layer_name)
             elif activation == 'relu':
                 h = tf.nn.relu(h, name=layer_name)
 
@@ -102,15 +114,16 @@ def build_network_NoTiedWeight(
     fc1 = build_fc_layer(X, X_dim, fc1_dim, 'FC1',
                             bn_is_training,
                             use_dropout=use_dropout, 
+                            #use_dropout=False, 
                             keep_prob=keep_prob,
                             use_BN=use_BN,
                             use_BN_Contrib=use_BN_Contrib,
-                            #bn_is_training=bn_is_training, 
                             use_BN_Front=use_BN_Front, activation='elu')
     # FC2
     fc2 = build_fc_layer(fc1, fc1_dim, fc2_dim, 'FC2',
                             bn_is_training,
                             use_dropout=use_dropout, 
+                            #use_dropout=False, 
                             keep_prob=keep_prob,
                             use_BN=use_BN,
                             use_BN_Contrib=use_BN_Contrib,
@@ -120,25 +133,29 @@ def build_network_NoTiedWeight(
     # FC3
     fc3 = build_fc_layer(fc2, fc2_dim, fc3_dim, 'FC3',
                             bn_is_training,
-                            use_dropout=use_dropout, 
+                            #use_dropout=use_dropout, 
+                            use_dropout=False, 
                             keep_prob=keep_prob,
                             use_BN=use_BN,
                             use_BN_Contrib=use_BN_Contrib,
 							use_BN_Front=use_BN_Front, activation='elu')
 
     # FC3
-    fc3a = build_fc_layer(fc3, fc3_dim, fc3a_dim, 'FC3a',
-                            bn_is_training,
-                            use_dropout=use_dropout, 
-                            keep_prob=keep_prob,
-                            use_BN=use_BN,
-                            use_BN_Contrib=use_BN_Contrib,
-                            use_BN_Front=use_BN_Front, activation='elu')
-
+    #fc3a = build_fc_layer(fc3, fc3_dim, fc3a_dim, 'FC3a',
+    #                        bn_is_training,
+    #                        #use_dropout=use_dropout, 
+    #                        use_dropout=False, 
+    #                        keep_prob=keep_prob,
+    #                        use_BN=use_BN,
+    #                        use_BN_Contrib=use_BN_Contrib,
+    #                        use_BN_Front=use_BN_Front, activation='elu')
+#
     # FC4
-    fc4 = build_fc_layer(fc3a, fc3a_dim, fc4_dim, 'FC4',
+    #fc4 = build_fc_layer(fc3a, fc3a_dim, fc4_dim, 'FC4',
+    fc4 = build_fc_layer(fc3, fc3_dim, fc4_dim, 'FC4',
                             bn_is_training,
-                            use_dropout=use_dropout, 
+                            #use_dropout=use_dropout, 
+                            use_dropout=False, 
                             keep_prob=keep_prob,
                             use_BN=use_BN,
                             use_BN_Contrib=use_BN_Contrib,
@@ -146,7 +163,8 @@ def build_network_NoTiedWeight(
     # FCFeat
     fc_feat = build_fc_layer(fc4, fc4_dim, fc_feat_dim, 'FCFeat',
                             bn_is_training,
-                            use_dropout=use_dropout, 
+                            #use_dropout=use_dropout, 
+                            use_dropout=False, 
                             keep_prob=keep_prob,
                             use_BN=use_BN,
                             #use_BN=False, # NO BN on the feature output
@@ -155,24 +173,28 @@ def build_network_NoTiedWeight(
     # FC5
     fc5 = build_fc_layer(fc_feat, fc_feat_dim, fc5_dim, 'FC5',
                             bn_is_training,
-                            use_dropout=use_dropout, 
+                            use_dropout=False, 
+                            #use_dropout=use_dropout, 
                             keep_prob=keep_prob,
                             use_BN=use_BN,
                             use_BN_Contrib=use_BN_Contrib,
                             use_BN_Front=use_BN_Front, activation='elu')
     # FC5
-    fc5a = build_fc_layer(fc5, fc5_dim, fc5a_dim, 'FC5a',
-                            bn_is_training,
-                            use_dropout=use_dropout, 
-                            keep_prob=keep_prob,
-                            use_BN=use_BN,
-                            use_BN_Contrib=use_BN_Contrib,
-                            use_BN_Front=use_BN_Front, activation='elu')
+    #fc5a = build_fc_layer(fc5, fc5_dim, fc5a_dim, 'FC5a',
+    #                        bn_is_training,
+    #                        #use_dropout=use_dropout, 
+    #                        use_dropout=False, 
+    #                        keep_prob=keep_prob,
+    #                        use_BN=use_BN,
+    #                        use_BN_Contrib=use_BN_Contrib,
+    #                        use_BN_Front=use_BN_Front, activation='elu')
 #
     # FC6
-    fc6 = build_fc_layer(fc5a, fc5a_dim, fc6_dim, 'FC6',
+    #fc6 = build_fc_layer(fc5a, fc5a_dim, fc6_dim, 'FC6',
+    fc6 = build_fc_layer(fc5, fc5_dim, fc6_dim, 'FC6',
                             bn_is_training,
-                            use_dropout=use_dropout, 
+                            #use_dropout=use_dropout, 
+                            use_dropout=False, 
                             keep_prob=keep_prob,
                             use_BN=use_BN,
                             use_BN_Contrib=use_BN_Contrib,
